@@ -1,0 +1,80 @@
+<form class="mb-4" id="book-form" action="{{form_action}}" method="POST">
+    {{#if work_key}}
+    <input class="d-none" name="work_key" type="text" value="{{work_key}}" id="work-test">
+    {{/if}}
+
+    <div class="row mb-3">
+        <label for="title-id" class="col-form-label col-sm-3 required-star">Title</label>
+        <div class="col input-group-has-validation">
+            <input class="form-control {{#if (error-check trouble 'title')}}is-invalid{{/if}}" id="title-id" name="title" type="text" value="{{populate.title}}">
+            <div class="invalid-feedback">{{error-check trouble 'title'}}</div>
+        </div>
+    </div>
+
+    {{#unless omit_author}}
+    <div class="row mb-3">
+        <label for="select-author-id" class="col-form-label col-sm-3 required-star">Author</label>
+        <div class="col input-group-has-validation">
+            <select name="author_id" id="select-author-id" class="form-select {{#if (error-check trouble 'author_id')}}is-invalid{{/if}}">
+                <option>Select author...</option>
+                {{#each authors}}
+                <option value="{{author_id}}" {{#if (match-string ../populate.author_id author_id)}}selected{{/if}}>{{last_name}}{{#if last_name}}, {{/if}}{{first_name}}</option>
+                {{/each}}
+            </select>
+            <div class="invalid-feedback">{{error-check trouble 'author_id'}}</div>
+        </div>
+    </div>
+    {{/unless}}
+
+    <div class="row mb-3">
+        <label for="isbn-id" class="col-form-label col-sm-3">ISBN</label>
+        <div class="col input-group-has-validation">
+            <input class="form-control {{#if (error-check trouble 'isbn')}}is-invalid{{/if}}" id="isbn-id" name="isbn" type="text" value="{{populate.isbn}}">
+            <div class="invalid-feedback">{{error-check trouble 'isbn'}}</div>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <label for="summary-id" class="col-form-label col-sm-3">Summary</label>
+        <div class="col input-group-has-validation">
+            <textarea class="form-control {{#if (error-check trouble 'summary')}}is-invalid{{/if}}" id="summary-id" name="summary" type="text" rows="4">{{populate.summary}}</textarea>
+            <div class="invalid-feedback">{{error-check trouble 'summary'}}</div>
+        </div>
+    </div>
+
+
+    {{#if condense}}<details><summary><small>Categories</small></summary>{{/if}}
+    <div class="row mb-3">
+        <label for="genre-checkboxes" class="col-form-label col-sm-3">Genres</label>
+        <div class="col d-flex flex-wrap justify-content-between">
+            {{#each genres}}
+            <div class="form-check min-tiny">
+                <input type="checkbox" class="form-check-input" name="genre-{{genre_id}}" id="cb-{{genre_id}}" {{#if (find-in ../genreChecks 'genre_id' genre_id)}}checked{{/if}}>
+                <label class="text-break" for="cb-{{genre_id}}">{{name}}</label>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+
+    {{#if suggestions}}
+    <div class="row mb-3">
+        <label for="genre-checkboxes" class="col-form-label col-sm-3">Suggestions</label>
+        <div class="col d-flex flex-wrap justify-content-between">
+            {{#each suggestions}}
+            <div class="form-check min-tiny w-100">
+                <input type="checkbox" class="form-check-input" name="suggestion-{{suggestion_id}}" id="scb-{{suggestion_id}}" value="{{name}}" {{#if (find-in ../suggestionChecks 'suggestion_id' suggestion_id)}}checked{{/if}}>
+                <label class="text-break" for="scb-{{suggestion_id}}">{{name}}</label>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+    {{/if}}
+
+    {{#if condense}}</details>{{/if}}
+
+    {{#if submit}}
+    <div class="d-flex justify-content-end">
+    <button class="btn btn-primary fw-semibold" type="submit">{{submit}}</button>
+    </div>
+    {{/if}}
+</form>

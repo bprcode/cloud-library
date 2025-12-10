@@ -1,0 +1,445 @@
+:root {
+  --light-shade: hsl(35, 10%, 88%);
+  --header-bg-overwrite: hsl(35, 10%, 94%);
+  --lighter-header-bg: hsl(35, 10%, 98%);
+
+  --primary: hsl(4, 85%, 52%);
+  --primary-light: hsl(5, 100%, 68%);
+  --primary-brighter: hsl(5, 100%, 72%);
+  --primary-transparent: rgba(235, 37, 11, 0.25);
+  --primary-dark: rgb(200, 39, 18);
+  --dark-link: rgb(205, 25, 1);
+  --logo-crimson: #6C0808;
+
+  --ui-button-size: 32px;
+}
+
+.skip-transition {
+  transition: 0s all !important;
+}
+
+.await-reveal {
+  opacity: 0;
+}
+
+.center-xl {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0px auto;
+}
+
+.pt-header {
+  padding-top: 10px;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+.shade-initially {
+  background-color: var(--light-shade);
+}
+
+.background-revert {
+  background-color: inherit;
+  transition: background-color 0.18s ease-out;
+}
+
+.nav-link {
+  color: var(--primary-light);
+}
+
+.dark-link {
+  color: var(--dark-link);
+}
+
+.card {
+  box-shadow: 9px 9px 0px #00004014;
+}
+
+.reasonable-width {
+  max-width: 794px; /* Slightly past center to offset visual weight of navlinks */
+}
+
+.small-max-width {
+  max-width: 400px;
+}
+
+.library-primary-bg {
+  background-color: var(--primary);
+}
+
+.serif,
+h1 {
+  font-family: 'Roboto Slab', serif;
+}
+
+.shelf {
+  background-image: url(/shelf-vignette.webp);
+  background-position: 50%;
+  background-size: max(800px, min(1200px, 100vw)) auto;
+  background-repeat: no-repeat;
+  background-position-x: 0px;
+  background-position-y: 67%;
+  height: 80px;
+}
+
+@media (min-width: 1200px) {
+  .shelf {
+    background-position-x: calc(50vw - 508px);
+  }
+}
+
+.shelf a:hover {
+  color: var(--primary-brighter);
+}
+
+.shelf::after {
+  z-index: -1;
+  content: '';
+  width: 100%;
+  height: 9px;
+  position: absolute;
+  left: 0;
+  top: 80px;
+  border-top: 2px solid rgb(172, 118, 17);
+  background-image: linear-gradient(to right,
+    rgb(177, 9, 0),var(--primary),rgb(63, 14, 0));
+}
+
+body {
+  background-color: var(--light-shade);
+}
+
+header {
+  background-color: #020202;
+}
+
+.card-header {
+  --bs-card-cap-bg: var(--header-bg-overwrite);
+}
+
+.modal-header {
+  background-color: var(--header-bg-overwrite);
+}
+
+.form-control:focus {
+  box-shadow: 0 0 0 .25rem rgba(225, 34, 0, 0.25);
+  border-color: var(--primary);
+}
+
+.btn-primary {
+  --bs-btn-bg: var(--primary);
+  --bs-btn-border-color: var(--primary-dark);
+  --bs-btn-hover-bg: var(--primary-light);
+  --bs-btn-hover-border-color: var(--primary);
+  --bs-btn-active-bg: white;
+  --bs-btn-active-color: var(--primary);
+  --bs-btn-active-border-color: var(--primary);
+}
+
+.btn:disabled {
+  --bs-btn-disabled-color: var(--primary);
+  --bs-btn-disabled-bg: var(--light-shade);
+  --bs-btn-disabled-border-color: var(--primary);
+}
+
+.form-check-input:checked {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.form-check-input:focus {
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 .25rem var(--primary-transparent);
+}
+
+.form-select:focus{
+  border: 1px solid var(--primary-light);
+  box-shadow: 0 0 0 .25rem var(--primary-transparent);
+}
+
+.min-tiny {
+  min-width: 10rem;
+  max-width: 10rem;
+}
+
+.required-star::after {
+  content: '*';
+  padding-left: 0.2em;
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 2em;
+  line-height: 0px;
+  color: var(--primary)
+}
+
+.btn-toggle {
+    display: inline-flex;
+    align-items: center;
+    padding: .25rem .5rem;
+    font-weight: 600;
+    color: rgba(0, 0, 0, .65);
+    background-color: transparent;
+    border: 0;
+  }
+  .btn-toggle:hover,
+  .btn-toggle:focus {
+    color: rgba(0, 0, 0, .85);
+    background-color: var(--primary-light);
+  }
+  .btn-toggle:active {
+    color: var(--primary-light) !important;
+    outline: 2px solid red !important;
+  }
+  
+  .btn-toggle::before {
+    width: 1.25em;
+    line-height: 0;
+    content: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='rgba%280,0,0,.5%29' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 14l6-6-6-6'/%3e%3c/svg%3e");
+    transition: transform .35s ease;
+    transform-origin: .5em 50%;
+  }
+  
+  .btn-toggle[aria-expanded="true"] {
+    color: rgba(0, 0, 0, .85);
+  }
+  .btn-toggle[aria-expanded="true"]::before {
+    transform: rotate(90deg);
+  }
+  
+  .btn-toggle-nav a {
+    display: inline-flex;
+    padding: .1875rem .5rem;
+    margin-top: .125rem;
+    margin-left: 1.25rem;
+    text-decoration: none;
+  }
+  .btn-toggle-nav a:hover,
+  .btn-toggle-nav a:focus {
+    background-color: var(--primary-light);
+  }
+
+.navbar-toggler {
+  position: fixed;
+  top: 0px;
+  right: 0px;
+  padding-top: 10px;
+  padding-right: 16px;
+  z-index: 11;
+}
+
+.navbar-toggler img {
+  box-shadow: 8px 8px 8px #0008;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+#nav-group button {
+  --bs-btn-font-size: 1.15rem;
+}
+
+#nav-group a {
+  margin-left: 1.5rem;
+}
+
+#back-button {
+  color: var(--primary);
+  border: none;
+  background-color: transparent;
+}
+
+.ui-button {
+  position: relative;
+  width: var(--ui-button-size);
+  height: var(--ui-button-size);
+  border: 1px #aaa solid;
+  margin-left: 5px;
+}
+
+.ui-button:hover {
+  background-color: var(--primary-light);
+}
+
+.ui-button:active > img {
+  filter: invert();
+}
+
+.ui-button:active {
+  background-color: var(--light-shade) !important;
+  border: 1px var(--primary-light) solid !important;
+}
+
+.ui-button > img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  width: 20px;
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+}
+
+.ui-button-pair {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: end;
+  align-content: baseline;
+  padding-left: 0px;
+  padding-right: 0px;
+  width: 38px;
+}
+
+@media (max-width: 299.98px) {
+  .ui-button-pair a:nth-child(2) {
+    margin-top: 5px;
+  }
+}
+
+@media (min-width: 299.98px) {
+  .ui-button-pair {
+    width: 78px;
+    min-width: 78px;
+  }
+}
+
+@media (max-width: 330px) {
+  .tiny-padding-2 {
+    padding-right: .5rem !important;
+    padding-left: .5rem !important;
+  }
+}
+
+@media (min-width: 576px) {
+  .status-holder {
+    display:flex;
+    justify-content: end !important;
+    min-width: 7em;
+  }
+}
+
+.header-search-field {
+  height: var(--ui-button-size);
+  background-color: var(--lighter-header-bg);
+}
+
+.header-search-field:focus {
+  background-color: white;
+}
+
+.invert {
+  filter: invert();
+}
+
+.pe-almost-5 {
+  padding-right: 2.5rem;
+}
+
+.flex-adaptive {
+  flex-grow: 1;
+  flex-shrink: 1;
+  width: 1px;
+}
+
+.nojs-hidden {
+  display: none;
+}
+
+.side-links {
+  width: 180px !important;
+}
+
+.side-links .btn-close {
+  width: 40px;
+  height: 40px;
+  padding: 10px 16px 0 0;
+  margin: 0 0 0 auto;
+  border-radius: 0px;
+  opacity: 1;
+  background-image: url(/close-box.svg);
+  background-size: 40px;
+  background-position: 0% 100%;
+}
+
+.btn-close:focus {
+  box-shadow: unset;
+}
+
+.pagination-control {
+  font-size: 1.05em;
+  margin-right: 0.3em;
+}
+
+.pagination-control > * {
+  display: inline-block;
+  text-align: center;
+  min-width: 1.7em;
+  height: 1.9em;
+  padding-top: 0.25em;
+  margin-left: 0em;
+  margin-right: 0em;
+}
+
+.pagination-control > a:hover {
+  text-decoration: none;
+  color: white;
+  background-color: var(--primary-light);
+  border-radius: 3px;
+}
+
+.pagination-control > a:active {
+  text-decoration: underline;
+  color: var(--primary);
+  background-color: white;
+}
+
+.page-ellipsis {
+  min-width: 0px;
+  font-size: 0.9em;
+}
+
+.current-page {
+  background-color: gainsboro;
+  border-radius: 3px;
+}
+
+.logo-container img {
+  margin-right: 0.5rem;
+  height: 96px;
+}
+
+.logo-container img:hover {
+  filter: brightness(110%);
+}
+  
+@media (min-width: 600px) {
+  .logo-container img {
+    height: 104px;
+  }
+}
+
+@media (min-width: 768px) {
+  .logo-container {
+    margin-left: 16px;
+  }
+}
+
+@media (max-width: 576px) {
+  .side-links {
+    background-color: var(--light-shade) !important;
+  }
+}

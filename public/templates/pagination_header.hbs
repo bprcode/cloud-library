@@ -1,0 +1,11 @@
+<div class="tiny-padding-2 text-muted" id="results-header">
+{{#if noResults~}}
+No results found.
+{{~else}}
+    {{~#if allResults~}}
+    {{#if (plural-s total)}}All{{/if}} {{total}} result{{plural-s total}}:
+    {{~else~}}
+    {{countStart}} to {{countEnd}} of {{total}} results:
+    {{~/if~}}
+{{/if}}
+</div>

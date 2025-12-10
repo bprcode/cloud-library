@@ -11,23 +11,22 @@ const hbs = require('hbs')
 
 // Precompilation templating
 const Handlebars = require('handlebars')
-const sampleTemplate = require('../built/views/partials/lean_layout')
-
+require('../built/partials')
+require('../built/templates')
 
 // TODO
 // hbs.registerPartials(path.join(__dirname, '/views/partials'))
 // hbs.registerPartials(path.join(__dirname, '/public/templates'))
 
-// hbs.registerHelper('match', (a, b) => a === b)
-// hbs.registerHelper('match-string', (a, b) => String(a) === String(b))
-// hbs.registerHelper('find-in', (arr, key, value) => {
-// 	return arr?.find((e) => e[key] === value)
-// })
-// hbs.registerHelper('extract-year', (dateString) => {
-// 	return dateString?.match(/\d*/)[0]
-// })
+hbs.registerHelper('match', (a, b) => a === b)
+hbs.registerHelper('match-string', (a, b) => String(a) === String(b))
+hbs.registerHelper('find-in', (arr, key, value) => {
+	return arr?.find((e) => e[key] === value)
+})
+hbs.registerHelper('extract-year', (dateString) => {
+	return dateString?.match(/\d*/)[0]
+})
 
-/*
 hbs.registerHelper('pretty-date', (date) => {
 	if (!date) {
 		return ''
@@ -53,7 +52,6 @@ hbs.registerHelper('error-check', (trouble, name) => {
 	if (trouble) return trouble.find((t) => t.param === name)?.msg
 	return undefined
 })
-*/
 
 // Load routers
 const catalogRouter = require('./routes/catalog-route.js')
@@ -73,6 +71,24 @@ app
 		next()
 	})
 
+	// Patch render method to directly reference compiled template bundle:
+	.use((req, res, next) => {
+		res.render = (template, options) => {
+			console.log('## RENDER ATTEMPT:', template, 'with options:', options)
+			const templateName = template.split('.')[0]
+
+			if (!(templateName in Handlebars.templates)) {
+				throw new Error(`${template} not found in templates`)
+			}
+
+			const test = Handlebars.templates[templateName](options)
+			console.log('TEST RENDER:\n', test)
+			res.send(Handlebars.templates[templateName](options))
+		}
+
+		next()
+	})
+
 	.use('/health', (req, res) => {
 		res.status(200).send()
 	})
@@ -82,42 +98,42 @@ app
 	.use('/catalog', catalogRouter)
 	.use('/reset', resetRouter)
 
-    // TODO
-	// .use(express.static(path.join(__dirname, 'public')))
-	.get('/hb', (req, res) => {
-		const html = Handlebars.templates['lean_layout.hbs']()
-
-		// const justPart = html.substring(0,1023)
-
-		// const test = `${justPart}`
-		// console.log(test)
-		// res.send(test)
-		// res.send('x'.repeat(1024))
-
-		res.send(html)
-
-
-		// console.log(html)
-		// res.setHeader('Content-Type', 'text/html; charset=utf-8');
-		// res.end(Buffer.from(html, 'utf8'))
-		// res.send(`<html style="color:blue">some test string
-		// 	even with newlines and such</html>`)
+	.get('/templates', (req, res) => {
+		res.json(Object.keys(Handlebars.templates))
+	})
+	.get('/ec', (req, res) => {
+		res.render('error.hbs')
+	})
+	.get('/foo', (req, res) => {
+		console.log('######### FOO HIT')
+		res.render('catalog-active-home.hbs', {
+        title: 'Archivia',
+        book_count: 1,
+        author_count: 2,
+        genre_count: 3,
+        available_count: 4,
+        total_count: 5,
+        recent_books: []
+    })
 	})
 
 	.use((req, res, next) => {
+		console.log('###### 404')
 		res.status(404)
 		throw new Error('File not found.')
 	})
 
-	// .use((err, req, res, next) => {
-	// 	res.render('error.hbs', {
-	// 		title: 'Error Encountered',
-	// 		status_code: res.statusCode,
-	// 		error_message: err.message,
-	// 		error_stack:
-	// 			process.env.NODE_ENV !== 'production' ? err.stack : undefined,
-	// 	})
-	// })
+	// TODO
+	.use((err, req, res, next) => {
+		console.log('###### ERROR')
+		res.render('error.hbs', {
+			title: 'Error Encountered',
+			status_code: res.statusCode,
+			error_message: err.message,
+			error_stack:
+				process.env.NODE_ENV !== 'production' ? err.stack : undefined,
+		})
+	})
 
 const server = app.listen(3000, () => {
 	if (process.env.NODE_ENV === 'production')
