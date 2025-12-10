@@ -1,4 +1,4 @@
-require('@bprcode/handy')
+// require('@bprcode/handy')
 import { httpServerHandler } from 'cloudflare:node'
 import express from 'express'
 const app = express()
@@ -11,13 +11,14 @@ const { DateTime } = require('luxon')
 const hbs = require('hbs')
 
 // Precompilation templating
-// const Handlebars = require('handlebars')
-// const sampleTemplate = require('../built/views/partials/lean_layout')
+const Handlebars = require('handlebars')
+const sampleTemplate = require('../built/views/partials/lean_layout')
 
 
 // TODO
 // hbs.registerPartials(path.join(__dirname, '/views/partials'))
 // hbs.registerPartials(path.join(__dirname, '/public/templates'))
+
 // hbs.registerHelper('match', (a, b) => a === b)
 // hbs.registerHelper('match-string', (a, b) => String(a) === String(b))
 // hbs.registerHelper('find-in', (arr, key, value) => {
@@ -26,7 +27,7 @@ const hbs = require('hbs')
 // hbs.registerHelper('extract-year', (dateString) => {
 // 	return dateString?.match(/\d*/)[0]
 // })
-/*
+
 hbs.registerHelper('pretty-date', (date) => {
 	if (!date) {
 		return ''
@@ -56,30 +57,30 @@ hbs.registerHelper('error-check', (trouble, name) => {
 // Load routers
 const catalogRouter = require('./routes/catalog-route.js')
 const resetRouter = require('./routes/reset-route.js')
-*/
+
 app
-	// .use(compression())
-	// .use(helmet({ contentSecurityPolicy: false }))
-	// .disable('x-powered-by')
+	.use(compression())
+	.use(helmet({ contentSecurityPolicy: false }))
+	.disable('x-powered-by')
 
-	// .use(express.urlencoded({ extended: true }))
-	// .use(express.json())
+	.use(express.urlencoded({ extended: true }))
+	.use(express.json())
 
-	// .use((req, res, next) => {
-	// 	if (process.env.NODE_ENV !== 'production') {
-	// 		log(req.method + '> ' + req.originalUrl, dim)
-	// 	}
-	// 	next()
-	// })
+	.use((req, res, next) => {
+		if (process.env.NODE_ENV !== 'production') {
+			log(req.method + '> ' + req.originalUrl, dim)
+		}
+		next()
+	})
 
-	// .use('/health', (req, res) => {
-	// 	res.status(200).send()
-	// })
-	// .get('/', (req, res) => {
-	// 	res.redirect('/catalog')
-	// })
-	// .use('/catalog', catalogRouter)
-	// .use('/reset', resetRouter)
+	.use('/health', (req, res) => {
+		res.status(200).send()
+	})
+	.get('/', (req, res) => {
+		res.redirect('/catalog')
+	})
+	.use('/catalog', catalogRouter)
+	.use('/reset', resetRouter)
 
     // TODO
 	// .use(express.static(path.join(__dirname, 'public')))
@@ -92,6 +93,8 @@ app
 		// console.log(test)
 		// res.send(test)
 		res.send('x'.repeat(1024))
+
+		// res.send(html)
 
 
 		// console.log(html)
