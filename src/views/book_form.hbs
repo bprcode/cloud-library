@@ -1,0 +1,10 @@
+{{! This template populates catalog-layout.hbs }}
+{{#> catalog_layout use_script='/form-eraser.js' no_title=1}}{{#*inline 'content'~}}
+<div class="card">
+    <div class="card-header mb-3"><h1 class="fs-3">{{title}}</h1></div>
+
+    <div class="container col-md-10">
+        {{#> book_form_body}}{{/book_form_body}}
+    </div>
+</div>
+{{~/inline}}{{/catalog_layout}}

@@ -1,0 +1,61 @@
+{{! This template populates catalog-layout.hbs }}
+{{#> catalog_layout title='Book' no_title=1}}{{#*inline 'content'~}}
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between tiny-padding-2 px-sm-3">
+        <span class="overflow-hidden">
+        <h1 class="fs-3 mb-0 fw-semibold">{{book_info.title}}</h1>
+        by <a href="{{book_info.author_url}}">{{book_info.full_name}}</a>
+        </span>
+        <span class="ui-button-pair">
+            <a class="btn ui-button" href="{{book_info.book_url}}/update"><img src="/pencil-fill.svg" alt="Pencil icon click to edit"></a>
+            <a class="btn ui-button" href="{{book_info.book_url}}/delete"><img src="/trash.svg" alt="Trash icon click to delete"></a>
+        </span>
+    </div>
+    
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item">
+            {{#unless book_info.summary}}<p class="text-muted"><em>No summary provided.</em></p>{{/unless}}
+            {{#each book_info.summary}}<p>{{.}}</p>{{/each}}
+            <small>{{#each genre_info}}<a href="{{genre_url}}">{{name}}</a>{{comma-list name}}{{/each}}</small>
+        </li>
+        <li class="list-group-item"><small class="text-muted">ISBN: {{book_info.isbn}}</small></li>
+    </ul>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between tiny-padding-2 px-sm-3">
+        <span class="overflow-hidden">
+            Availability:
+        </span>
+        <span class="">
+            <a class="btn ui-button mt-0" href="/catalog/inventory/create/{{book_info.book_id}}"><img src="/file-earmark-plus.svg" alt="New entry icon click to create"></a>
+        </span>
+    </div>
+
+    {{#if instances}}
+    <ul class="list-group list-group-flush">
+    {{#each instances}}
+        <li class="list-group-item">
+            <div class="d-flex justify-content-between align-items-baseline">
+                <a class="" href="{{book_instance_url}}">ID #{{instance_id}} {{imprint}}</a>
+                <span class="
+                    {{~#if (match status 'Available')}}text-success{{/if~}}
+                    {{~#if (match status 'Maintenance')}}text-danger{{/if~}}
+                    ">{{status}}</span>
+            </div>
+            {{~#unless (match status 'Available')}}
+            <div class="fst-italic text-muted">Due back: {{pretty-date due_back}}</div>
+            {{/unless}}
+
+        </li>
+    {{/each}}
+    {{/if}}
+    </ul>
+    {{#unless instances}}
+    <p class="card-body text-muted pt-2 pb-3 pb-0 mb-0">
+        No copies in inventory.
+    </p>
+    {{/unless}}
+</div>
+
+{{~/inline}}{{/catalog_layout}}

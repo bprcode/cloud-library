@@ -1,0 +1,42 @@
+{{! This template populates catalog-layout.hbs }}
+{{#> catalog_layout title='Inventory' no_title=1}}{{#*inline 'content'~}}
+<div class="card mb-4">
+    <div class="card-header tiny-padding-2 px-sm-3">
+        <div class="d-flex justify-content-between">
+            <span class="overflow-hidden">
+            <h1 class="serif h2 mb-0">Browse inventory</h1>
+            </span>
+            <span class="">
+                <a class="btn ui-button" href="/catalog/inventory/create"><img src="/file-earmark-plus.svg" alt="New entry icon click to create"></a>
+            </span>
+        </div>
+
+        {{> pagination_header}}
+
+    </div>
+
+    <ul class="list-group list-group-flush">
+    {{#each items}}
+    <li class="list-group-item">
+        <div class="row">
+            <span class="col-sm">
+                <a class="" href="{{book_instance_url}}">ID #{{instance_id}}
+                    {{title}}, {{full_name}}. {{imprint}}</a>
+            </span>
+            <span class="pt-1 pt-sm-0 col-sm-3 status-holder
+                {{#if (match status 'Available')}}text-success{{/if~}}
+                {{~#if (match status 'Maintenance')}}text-danger{{/if~}}
+                ">{{status}}</span>
+        </div>
+    {{#if due_back}}
+    <div class="fst-italic text-muted">Due back: {{pretty-date due_back}}</div>
+    {{/if}}
+
+    </li>
+    {{/each}}
+    </ul>
+
+    {{> pagination_footer}}
+    
+</div>
+{{~/inline}}{{/catalog_layout}}

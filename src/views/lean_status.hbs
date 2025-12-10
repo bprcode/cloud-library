@@ -1,0 +1,27 @@
+{{!-- Equivalent to "extending" the lean_layout template --}}
+{{#> lean_layout }}
+  {{#*inline 'mod_preload'}}
+    <link href="https://fonts.googleapis.com/css2?family=Oxygen+Mono&display=swap" rel="stylesheet"> 
+  {{/inline}}
+  {{#*inline 'mod_content'}}
+    {{# pre }}
+      <pre>{{this}}</pre>
+    {{/pre}}
+    <table>
+    <tr>
+      {{#each result.fields}}
+      <th scope="col">{{name}}</th>
+      {{/each}}
+    </tr>
+    <tbody>
+    {{#each result.rows}}
+    <tr>
+      {{#each this}}
+        <td>{{this}}</td>
+      {{/each}}
+    </tr>
+    {{/each}}
+    </tbody>
+    </table>
+  {{/inline}}
+{{/lean_layout}}

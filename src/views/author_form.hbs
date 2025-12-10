@@ -1,0 +1,28 @@
+{{! This template populates catalog-layout.hbs }}
+{{#> catalog_layout use_script='/form-eraser.js' no_title=1}}{{#*inline 'content'~}}
+<div class="card">
+    <div class="card-header mb-3"><h1 class="fs-3">{{title}}</h1></div>
+
+    <div class="container col-md-11">
+        {{#> author_form_body}}{{/author_form_body}}
+    </div>
+</div>
+
+<script>
+    // Keep fields in sync
+    document.getElementById('dod-id').addEventListener('change', event => {
+        let changed = document.getElementById('dod-id').value
+        document.getElementById('yod-id').value = changed.split('-')[0]
+    })
+    document.getElementById('dob-id').addEventListener('change', event => {
+        let changed = document.getElementById('dob-id').value
+        document.getElementById('yob-id').value = changed.split('-')[0]
+    })
+    document.getElementById('yod-id').addEventListener('input', event => {
+        document.getElementById('dod-id').value = ''
+    })
+    document.getElementById('yob-id').addEventListener('input', event => {
+        document.getElementById('dob-id').value = ''
+    })
+</script>
+{{~/inline}}{{/catalog_layout}}
