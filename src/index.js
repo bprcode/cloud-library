@@ -1,10 +1,9 @@
-// require('@bprcode/handy')
+require('@bprcode/handy')
 import { httpServerHandler } from 'cloudflare:node'
 import express from 'express'
 const app = express()
 
 const helmet = require('helmet')
-const compression = require('compression')
 
 // Initialize templating
 const { DateTime } = require('luxon')
@@ -28,6 +27,7 @@ const sampleTemplate = require('../built/views/partials/lean_layout')
 // 	return dateString?.match(/\d*/)[0]
 // })
 
+/*
 hbs.registerHelper('pretty-date', (date) => {
 	if (!date) {
 		return ''
@@ -53,13 +53,13 @@ hbs.registerHelper('error-check', (trouble, name) => {
 	if (trouble) return trouble.find((t) => t.param === name)?.msg
 	return undefined
 })
+*/
 
 // Load routers
 const catalogRouter = require('./routes/catalog-route.js')
 const resetRouter = require('./routes/reset-route.js')
 
 app
-	.use(compression())
 	.use(helmet({ contentSecurityPolicy: false }))
 	.disable('x-powered-by')
 
@@ -85,16 +85,16 @@ app
     // TODO
 	// .use(express.static(path.join(__dirname, 'public')))
 	.get('/hb', (req, res) => {
-		// const html = Handlebars.templates['lean_layout.hbs']()
+		const html = Handlebars.templates['lean_layout.hbs']()
 
 		// const justPart = html.substring(0,1023)
 
 		// const test = `${justPart}`
 		// console.log(test)
 		// res.send(test)
-		res.send('x'.repeat(1024))
+		// res.send('x'.repeat(1024))
 
-		// res.send(html)
+		res.send(html)
 
 
 		// console.log(html)
@@ -109,15 +109,15 @@ app
 		throw new Error('File not found.')
 	})
 
-	.use((err, req, res, next) => {
-		res.render('error.hbs', {
-			title: 'Error Encountered',
-			status_code: res.statusCode,
-			error_message: err.message,
-			error_stack:
-				process.env.NODE_ENV !== 'production' ? err.stack : undefined,
-		})
-	})
+	// .use((err, req, res, next) => {
+	// 	res.render('error.hbs', {
+	// 		title: 'Error Encountered',
+	// 		status_code: res.statusCode,
+	// 		error_message: err.message,
+	// 		error_stack:
+	// 			process.env.NODE_ENV !== 'production' ? err.stack : undefined,
+	// 	})
+	// })
 
 const server = app.listen(3000, () => {
 	if (process.env.NODE_ENV === 'production')
