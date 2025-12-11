@@ -97,10 +97,6 @@ app
 	.get('/', (req, res) => {
 		res.redirect('/catalog')
 	})
-	.get('/test', (req, res) => {
-		console.log('testing~!')
-		res.send('test!')
-	})
 	.use('/catalog', catalogRouter)
 	.use('/reset', resetRouter)
 
