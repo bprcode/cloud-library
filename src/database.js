@@ -1,38 +1,42 @@
-const { Pool } = require('pg')
-const pool = new Pool()
+const { Client } = require('pg')
 require('@bprcode/handy')
 let dbLog = log
 if (process.env.NODE_ENV === 'production') {
-    dbLog('Silencing database logs in production.', blue)
-    dbLog = _ => {}
+	dbLog('Silencing database logs in production.', blue)
+	dbLog = (_) => {}
 }
 
 // PLACEHOLDER: Drop-in replacement for pg-format,
 // which is unsupported on Cloudflare Workers.
 // DOES NOT PERFORM SANITIZATION.
 function format(query, ...args) {
-    for(const replacement of args) {
-        query = query.replace('%I', replacement)
-    }
-    dbLog('TODO: replace this reformatting approach later: ', pink, query)
-    return query
-}
-
-// Expose general query method
-function query (...etc)  {
-    dbLog('TODO: replace pool with client queries for workers', pink)
-    return pool.query(...etc)
+	for (const replacement of args) {
+		query = query.replace('%I', replacement)
+	}
+	dbLog('TODO: replace this reformatting approach later: ', pink, query)
+	return query
 }
 
 // Run a query, but just return the rows, or row for single results,
 // or null for no results.
-async function queryResult (...etc) {
-    const rows = (await pool.query(...etc)).rows
-    if (rows.length === 0) {
-        return null
-    }
-    
-    return rows
+async function queryResult(...etc) {
+	const client = new Client()
+
+	try {
+		await client.connect()
+		const rows = (await client.query(...etc)).rows
+		if (rows.length === 0) {
+			return null
+		}
+
+		return rows
+	} catch (e) {
+		dbLog('Database client error:', pink, e)
+	} finally {
+		dbLog('Releasing client...', yellow)
+		await client.end()
+		dbLog('Client released', yellow)
+	}
 }
 
 /**
@@ -43,24 +47,22 @@ async function queryResult (...etc) {
  * to an object or array of objects, from which to convert Date objects into
  * date strings.
  */
-async function snipTimes (source) {
-    function snipObject (o) {
-        for(const key in o) {
-            if (o[key] instanceof Date)
-                o[key] = o[key].toISOString().split('T')[0]
-        }    
-    }
+async function snipTimes(source) {
+	function snipObject(o) {
+		for (const key in o) {
+			if (o[key] instanceof Date) o[key] = o[key].toISOString().split('T')[0]
+		}
+	}
 
-    result = await source
+	result = await source
 
-    if (Array.isArray(result)) {
-        for (const r of result)
-            snipObject(r)
-    } else {
-        snipObject(result)
-    }
-    
-    return result
+	if (Array.isArray(result)) {
+		for (const r of result) snipObject(r)
+	} else {
+		snipObject(result)
+	}
+
+	return result
 }
 
 /**
@@ -68,287 +70,315 @@ async function snipTimes (source) {
  * from a condition object, along with the calculated offset.
  * @param {*} conditions - The object to modify.
  */
-function snipPagination (conditions) {
-    const snipped = {
-        page: conditions._page || 1,
-        limit: conditions._limit // leave undefined if not paginated
-    }
-    snipped.offset = (snipped.page - 1) * snipped.limit || 0
-    delete conditions._page
-    delete conditions._limit
-    return snipped
+function snipPagination(conditions) {
+	const snipped = {
+		page: conditions._page || 1,
+		limit: conditions._limit, // leave undefined if not paginated
+	}
+	snipped.offset = (snipped.page - 1) * snipped.limit || 0
+	delete conditions._page
+	delete conditions._limit
+	return snipped
 }
 
 // A class which parses an object into a SQL WHERE statement,
 // accounting for nulls (IS NULL) and treating other properties as
 // case-insensitive ILIKE comparisons.
 class WhereClause {
+	clause = ''
+	_values = []
+	offset = 0
+	limit = undefined
 
-    clause = ''
-    _values = []
-    offset = 0
-    limit = undefined
+	constructor(conditions) {
+		if (!conditions) {
+			return
+		}
 
-    constructor (conditions) {
-        if (!conditions) { return }
-        
-        let index = 1
-        const pagination = snipPagination(conditions)
+		let index = 1
+		const pagination = snipPagination(conditions)
 
-        this.offset = pagination.offset
-        this.limit = pagination.limit
+		this.offset = pagination.offset
+		this.limit = pagination.limit
 
-        if (Object.keys(conditions).length === 0) { return }
+		if (Object.keys(conditions).length === 0) {
+			return
+		}
 
-        const dirty = ' WHERE '
-                    + Object.keys(conditions)
-                        .map(k =>
-                            conditions[k] === null
-                                ? '%I IS NULL'
-                                : '%I::text ILIKE $' + (index++))
-                        .join(' AND ')
+		const dirty =
+			' WHERE ' +
+			Object.keys(conditions)
+				.map((k) =>
+					conditions[k] === null ? '%I IS NULL' : '%I::text ILIKE $' + index++
+				)
+				.join(' AND ')
 
-        this.clause = format(dirty, ...Object.keys(conditions))
-        this._values = Object.values(conditions)
-                        .filter(v => v !== null)
-                        .map(v => String(v))
-    }
+		this.clause = format(dirty, ...Object.keys(conditions))
+		this._values = Object.values(conditions)
+			.filter((v) => v !== null)
+			.map((v) => String(v))
+	}
 
-    toString () {
-        return this.clause
-    }
+	toString() {
+		return this.clause
+	}
 
-    get values () {
-        this._values.length
-            && dbLog(' values: ', pink, this._values.join(', '), green)
-        return this._values
-    }
+	get values() {
+		this._values.length &&
+			dbLog(' values: ', pink, this._values.join(', '), green)
+		return this._values
+	}
 
-    get length () {
-        return this._values.length
-    }
+	get length() {
+		return this._values.length
+	}
 
-    static from (conditions) {
-        return new WhereClause(conditions)
-    }
+	static from(conditions) {
+		return new WhereClause(conditions)
+	}
 }
 
 // General model for tables
 // Note: Constructor values are an injection risk
 // and should not be based on user input.
 class Model {
-    constructor (properties) {
-        Object.assign(this, {
-            schema: undefined,
-            table: 'default_table',
-            ...properties
-        })
-    }
+	constructor(properties) {
+		Object.assign(this, {
+			schema: undefined,
+			table: 'default_table',
+			...properties,
+		})
+	}
 
-    get relation () {
-        if (this.junction) { return this.junction }
-        if (this.schema) { return this.schema + '.' + this.table }
-        return this.table
-    }
+	get relation() {
+		if (this.junction) {
+			return this.junction
+		}
+		if (this.schema) {
+			return this.schema + '.' + this.table
+		}
+		return this.table
+	}
 
-    async count (conditions) {
-        const sql = `SELECT count(*) FROM ${this.relation}`
-        const where = WhereClause.from(conditions)
+	async count(conditions) {
+		const sql = `SELECT count(*) FROM ${this.relation}`
+		const where = WhereClause.from(conditions)
 
-        dbLog(sql, green)
-        return (await queryResult(sql + where, where.values))[0].count
-    }
+		dbLog(sql, green)
+		return (await queryResult(sql + where, where.values))[0].count
+	}
 
-    delete (conditions) {
-        if (!conditions)
-            throw new Error(`No WHERE-parameters specified for DELETE.`)
+	delete(conditions) {
+		if (!conditions)
+			throw new Error(`No WHERE-parameters specified for DELETE.`)
 
-        const where = WhereClause.from(conditions)
-        const sql = `DELETE FROM ${this.relation} ${where}`
-                        + ` RETURNING *`
-        
-        dbLog(sql, pink)
-        return queryResult(sql, where.values)
-    }
+		const where = WhereClause.from(conditions)
+		const sql = `DELETE FROM ${this.relation} ${where}` + ` RETURNING *`
 
-    insert (item) {
-        let clean = ``
-        let dirty = `INSERT INTO ${this.relation} (` +
-                    Array(Object.keys(item).length)
-                        .fill('%I')
-                        .join(', ')
-                    + `) VALUES (`
-                    + Object.values(item)
-                        .map((_,i) => `$` + (i+1))
-                        .join(', ')
-                    + `) RETURNING *`
+		dbLog(sql, pink)
+		return queryResult(sql, where.values)
+	}
 
-        dbLog(dirty, yellow)
-        clean = format(dirty,
-                        ...Object.keys(item))
-        dbLog(clean, blue)
+	insert(item) {
+		let clean = ``
+		let dirty =
+			`INSERT INTO ${this.relation} (` +
+			Array(Object.keys(item).length).fill('%I').join(', ') +
+			`) VALUES (` +
+			Object.values(item)
+				.map((_, i) => `$` + (i + 1))
+				.join(', ') +
+			`) RETURNING *`
 
-        return queryResult(clean, Object.values(item))
-    }
+		dbLog(dirty, yellow)
+		clean = format(dirty, ...Object.keys(item))
+		dbLog(clean, blue)
 
-    /**
-     * Makes the changes specified in the first object,
-     * given that the conditions in the second object are met.
-     * Ex: update({ price: 19.99 }, { state: 'CA', item_id: 123 })
-     * @param {Object} replace - The key-value pairs to substitute
-     * @param {Object} where - The conditions to meet
-     */
-    update (replace, where) {
-        let clean = ``
-        let dirty = `UPDATE ${this.relation} SET `
-        const whereClause = WhereClause.from(where)
-        // Where-clause indices come first,
-        // followed by replace-value indices:
-        let i = whereClause.values.length + 1
+		return queryResult(clean, Object.values(item))
+	}
 
-        dirty +=
-            Object.keys(replace)
-                .map(_ => `%I = $` + (i++))
-                .join(', ')
-        
-        dirty += whereClause
-        dirty += ` RETURNING *`
+	/**
+	 * Makes the changes specified in the first object,
+	 * given that the conditions in the second object are met.
+	 * Ex: update({ price: 19.99 }, { state: 'CA', item_id: 123 })
+	 * @param {Object} replace - The key-value pairs to substitute
+	 * @param {Object} where - The conditions to meet
+	 */
+	update(replace, where) {
+		let clean = ``
+		let dirty = `UPDATE ${this.relation} SET `
+		const whereClause = WhereClause.from(where)
+		// Where-clause indices come first,
+		// followed by replace-value indices:
+		let i = whereClause.values.length + 1
 
-        clean = format(dirty, ...Object.keys(replace))
+		dirty += Object.keys(replace)
+			.map((_) => `%I = $` + i++)
+			.join(', ')
 
-        dbLog(dirty, yellow)
-        dbLog(clean, blue)
+		dirty += whereClause
+		dirty += ` RETURNING *`
 
-        return queryResult(clean,
-            [...whereClause.values, ...Object.values(replace)])
-    }
+		clean = format(dirty, ...Object.keys(replace))
 
-    /**
-     * Columns to retrieve, followed by where-clause object
-     * Ex: find('name', 'age', 'height', {state: 'NY', year: 1999})
-     * @returns promise for query
-     */
-    find (...etc) {
-        let clean = ``
-        let dirty = `SELECT * FROM ${this.relation}`
-        let where = null
-        const parameters = []
+		dbLog(dirty, yellow)
+		dbLog(clean, blue)
 
-        if (etc.length === 0) {
-            dirty += this.orderClause
-            dbLog(dirty, yellow)
-            return queryResult(dirty) // Nothing to sanitize
-        }
-        // Otherwise...
-        if (typeof etc.at(-1) === 'object') {
-            where = WhereClause.from(etc.at(-1))
-            etc = etc.slice(0, -1)
-        }
+		return queryResult(clean, [
+			...whereClause.values,
+			...Object.values(replace),
+		])
+	}
 
-        if (etc.length > 0) {
-            dirty = `SELECT `
-                    +Array(etc.length)
-                    .fill(`%I`)
-                    .join(`, `)
-                    + ` FROM ${this.relation}`
-        }
+	/**
+	 * Columns to retrieve, followed by where-clause object
+	 * Ex: find('name', 'age', 'height', {state: 'NY', year: 1999})
+	 * @returns promise for query
+	 */
+	find(...etc) {
+		let clean = ``
+		let dirty = `SELECT * FROM ${this.relation}`
+		let where = null
+		const parameters = []
 
-        dirty += where ?? ''
-        dirty += this.orderClause
+		if (etc.length === 0) {
+			dirty += this.orderClause
+			dbLog(dirty, yellow)
+			return queryResult(dirty) // Nothing to sanitize
+		}
+		// Otherwise...
+		if (typeof etc.at(-1) === 'object') {
+			where = WhereClause.from(etc.at(-1))
+			etc = etc.slice(0, -1)
+		}
 
-        if (where) { parameters.push(...where.values) }
-        if (where?.limit) { // Use the DB parser to inject parameters
-            dirty += ' LIMIT $' + (where.length + 1)
-                        + ' OFFSET $' + (where.length + 2)
+		if (etc.length > 0) {
+			dirty =
+				`SELECT ` +
+				Array(etc.length).fill(`%I`).join(`, `) +
+				` FROM ${this.relation}`
+		}
 
-            parameters.push(where.limit, where.offset)
-        }
+		dirty += where ?? ''
+		dirty += this.orderClause
 
-        clean = format(dirty,
-                        ...etc, // column names
-                        this.order)
-                        
-        dbLog(clean, blue)
-        dbLog('parameters: ', dim, parameters)
+		if (where) {
+			parameters.push(...where.values)
+		}
+		if (where?.limit) {
+			// Use the DB parser to inject parameters
+			dirty +=
+				' LIMIT $' + (where.length + 1) + ' OFFSET $' + (where.length + 2)
 
-        return queryResult(clean, parameters)
-    }
+			parameters.push(where.limit, where.offset)
+		}
 
-    join (other, key) {
-        let newOrder = ''
-        if (this.order) {
-            newOrder = this.order +
-                            (other.order
-                            ? ', '
-                            : '')
-        }
-        if (other.order) { newOrder += other.order }
+		clean = format(
+			dirty,
+			...etc, // column names
+			this.order
+		)
 
-        return new Model({
-            junction: `${this.relation} JOIN ${other.relation}`
-                        + ` USING(${key})`,
-            order: newOrder
-        })
-    }
+		dbLog(clean, blue)
+		dbLog('parameters: ', dim, parameters)
 
-    get orderClause () {
-        if ( !this.order )
-            return ''
-        let dirty = ` ORDER BY `
-                        + Array(this.order.split(', ').length)
-                        .fill('%I')
-                        .join(', ')
-        let clean = format(dirty, ...this.order.split(', '))
-        return clean
-    }
+		return queryResult(clean, parameters)
+	}
+
+	join(other, key) {
+		let newOrder = ''
+		if (this.order) {
+			newOrder = this.order + (other.order ? ', ' : '')
+		}
+		if (other.order) {
+			newOrder += other.order
+		}
+
+		return new Model({
+			junction: `${this.relation} JOIN ${other.relation}` + ` USING(${key})`,
+			order: newOrder,
+		})
+	}
+
+	get orderClause() {
+		if (!this.order) return ''
+		let dirty =
+			` ORDER BY ` + Array(this.order.split(', ').length).fill('%I').join(', ')
+		let clean = format(dirty, ...this.order.split(', '))
+		return clean
+	}
 }
 
 // Instantiate table models
 const authors = new Model({
-    schema: 'lib', table: 'authors', order: 'last_name, first_name' })
+	schema: 'lib',
+	table: 'authors',
+	order: 'last_name, first_name',
+})
 // Create books as a junction table (lib.books + lib.authors)
 const books = new Model({
-    schema: 'lib', table: 'books', order: 'index_title' })
-    .join(authors, 'author_id')
+	schema: 'lib',
+	table: 'books',
+	order: 'index_title',
+}).join(authors, 'author_id')
 
 // Sometimes you need books without the joined information:
-const justBooks = new Model(
-    { schema: 'lib', table: 'books', order: 'index_title' })
+const justBooks = new Model({
+	schema: 'lib',
+	table: 'books',
+	order: 'index_title',
+})
 
 const genres = new Model({ schema: 'lib', table: 'genres', order: 'name' })
 const bookGenres = new Model({ schema: 'lib', table: 'book_genres' })
 
 const booksByGenre = new Model({
-    schema: 'lib', table: 'books', order: 'index_title'})
-    .join(bookGenres, 'book_id')
+	schema: 'lib',
+	table: 'books',
+	order: 'index_title',
+}).join(bookGenres, 'book_id')
 
-const genresByBook = bookGenres
-                    .join(genres, 'genre_id')
+const genresByBook = bookGenres.join(genres, 'genre_id')
 
 const bookInstances = new Model({
-    schema: 'lib', table: 'book_instance', order: 'instance_id' })
+	schema: 'lib',
+	table: 'book_instance',
+	order: 'instance_id',
+})
 
 const inventory = books.join(bookInstances, 'book_id')
 
 const spotlightWorks = new Model({
-    schema: 'lib', table: 'spotlight_works', order: 'serial'})
+	schema: 'lib',
+	table: 'spotlight_works',
+	order: 'serial',
+})
 
-const suggestions = spotlightWorks
-                    .join(justBooks, 'book_id')
+const suggestions = spotlightWorks.join(justBooks, 'book_id')
 
 /**
  * Retrieve an array of book status strings.
  * @returns Promise
  */
-async function bookStatusList () {
-    return (await queryResult(
-                    `SELECT unnest(enum_range(NULL::lib.book_status))`))
-                    .map(e => e.unnest)
+async function bookStatusList() {
+	return (
+		await queryResult(`SELECT unnest(enum_range(NULL::lib.book_status))`)
+	).map((e) => e.unnest)
 }
 
 module.exports = {
-    query, queryResult, snipTimes,
-    books, justBooks, authors, genres, bookInstances, inventory, booksByGenre,
-    genresByBook, bookGenres, spotlightWorks, suggestions,
-    bookStatusList,
+	queryResult,
+	snipTimes,
+	books,
+	justBooks,
+	authors,
+	genres,
+	bookInstances,
+	inventory,
+	booksByGenre,
+	genresByBook,
+	bookGenres,
+	spotlightWorks,
+	suggestions,
+	bookStatusList,
 }
