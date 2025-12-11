@@ -6,9 +6,9 @@ if (process.env.NODE_ENV === 'production') {
 	dbLog = (_) => {}
 }
 
-// PLACEHOLDER: Drop-in replacement for pg-format,
+// Drop-in replacement for pg-format,
 // which is unsupported on Cloudflare Workers.
-// DOES NOT PERFORM SANITIZATION.
+// Does not perform sanitization; must not be used for client input.
 function format(query, ...args) {
 	for (const replacement of args) {
 		query = query.replace('%I', replacement)
@@ -20,7 +20,11 @@ function format(query, ...args) {
 // Run a query, but just return the rows, or row for single results,
 // or null for no results.
 async function queryResult(...etc) {
-	const client = new Client()
+	const client = new Client({
+		ssl: process.env.NODE_ENV === 'production' ? {
+			rejectUnauthorized: false
+		} : undefined
+	})
 
 	try {
         dbLog('Connecting client...', yellow, ...etc)
@@ -165,7 +169,9 @@ class Model {
 		const where = WhereClause.from(conditions)
 
 		dbLog(sql, green)
-		return (await queryResult(sql + where, where.values))[0].count
+		const result = await queryResult(sql + where, where.values)
+		console.log('got query result:', result)
+		return result[0].count
 	}
 
 	delete(conditions) {

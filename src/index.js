@@ -98,6 +98,10 @@ app
 	.get('/', (req, res) => {
 		res.redirect('/catalog')
 	})
+	.get('/test', (req, res) => {
+		console.log('testing~!')
+		res.send('test!')
+	})
 	.use('/catalog', catalogRouter)
 	.use('/reset', resetRouter)
 
@@ -106,14 +110,15 @@ app
 		throw new Error('File not found.')
 	})
 
-	// TODO
+	// DEBUG
 	.use((err, req, res, next) => {
 		res.render('error.hbs', {
 			title: 'Error Encountered',
 			status_code: res.statusCode,
 			error_message: err.message,
 			error_stack:
-				process.env.NODE_ENV !== 'production' ? err.stack : undefined,
+				err.stack,
+				// process.env.NODE_ENV !== 'production' ? err.stack : undefined,
 		})
 	})
 
