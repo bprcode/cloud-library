@@ -23,6 +23,7 @@ async function queryResult(...etc) {
 	const client = new Client()
 
 	try {
+        dbLog('Connecting client...', yellow, ...etc)
 		await client.connect()
 		const rows = (await client.query(...etc)).rows
 		if (rows.length === 0) {
@@ -33,7 +34,6 @@ async function queryResult(...etc) {
 	} catch (e) {
 		dbLog('Database client error:', pink, e)
 	} finally {
-		dbLog('Releasing client...', yellow)
 		await client.end()
 		dbLog('Client released', yellow)
 	}
