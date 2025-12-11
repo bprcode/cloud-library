@@ -10,7 +10,9 @@ const { DateTime } = require('luxon')
 const hbs = require('hbs')
 
 // Precompilation templating
-const Handlebars = require('handlebars')
+const Handlebars = require('handlebars/runtime')
+global.Handlebars = Handlebars;
+
 require('../built/partials')
 require('../built/templates')
 
@@ -77,6 +79,13 @@ app
 			console.log('## RENDER ATTEMPT:', template, 'with options:', options)
 			const templateName = template.split('.')[0]
 
+			if(!Handlebars) {
+				throw new Error('Handlebars not defined.')
+			}
+			if(!Handlebars.templates) {
+				throw new Error('Handlebars.templates not defined.')
+			}
+
 			if (!(templateName in Handlebars.templates)) {
 				throw new Error(`${template} not found in templates`)
 			}
@@ -105,16 +114,16 @@ app
 		res.render('error.hbs')
 	})
 	.get('/foo', (req, res) => {
-		console.log('######### FOO HIT')
-		res.render('catalog-active-home.hbs', {
-        title: 'Archivia',
-        book_count: 1,
-        author_count: 2,
-        genre_count: 3,
-        available_count: 4,
-        total_count: 5,
-        recent_books: []
-    })
+
+		// res.render('lean_home.hbs')
+		
+		res.render('book_list.hbs', {
+                books: [],
+                noResults: true,
+                total: 0,
+                allResults: true,
+                populate: { search: 'example' }
+            })
 	})
 
 	.use((req, res, next) => {

@@ -1,5 +1,6 @@
-var Handlebars = require("handlebars");  var template = Handlebars.template, templates = Handlebars.templates = Handlebars.templates || {};
-Handlebars.partials['catalog-layout'] = template({"1":function(container,depth0,helpers,partials,data) {
+(function() {
+  var template = Handlebars.template, templates = Handlebars.templates = Handlebars.templates || {};
+Handlebars.partials['catalog_layout'] = template({"1":function(container,depth0,helpers,partials,data) {
     var helper, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -89,3 +90,4 @@ Handlebars.partials['lean_layout'] = template({"1":function(container,depth0,hel
 Handlebars.partials['script_required'] = template({"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data) {
     return "<noscript>\r\n<div class=\"row\">\r\n    <div class=\"col-1 offset-1\">\r\n        <img class=\"mt-2\" src=\"/code-slash.svg\" width=\"30\">\r\n    </div>\r\n    <div class=\"col-8 text-danger\">\r\n        <h2 class=\"fs-3\">Scripts Required.</h2>\r\n        <p class=\"mb-0\">This content requires JavaScript to function.</p>\r\n        <p>Please enable scripts to proceed.</p>\r\n    </div>\r\n</div>\r\n</noscript>\r\n<script defer>\r\n    document.addEventListener('DOMContentLoaded', event => {\r\n        for(const e of document.querySelectorAll('.nojs-hidden')) {\r\n            e.classList.remove('nojs-hidden')\r\n        }\r\n    })\r\n</script>\r\n";
 },"useData":true});
+})();

@@ -8,7 +8,7 @@
 		"start": "wrangler dev",
 		"test": "vitest",
 		"cf-typegen": "wrangler types",
-		"precompile": "handlebars src/views/partials -e hbs -p -f built/partials.js -c handlebars && handlebars src/views --ignore src/views/partials/** -e hbs -f built/templates.js -c handlebars"
+		"precompile": "handlebars src/views/partials -e hbs -p -f built/partials.js && handlebars src/views --ignore src/views/partials/** -e hbs -f built/templates.js"
 	},
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "^0.8.19",
