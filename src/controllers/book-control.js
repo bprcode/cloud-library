@@ -14,7 +14,6 @@ const {
 const { paginate, sanitizePagination } = require('./paginator.js')
 const axios = require('axios')
 const Fuse = require('fuse.js')
-const { log } = require('handlebars')
 
 const preventTitleCollision = body('title')
 	.trim()
@@ -74,26 +73,14 @@ const bookIdValidator = param('id', 'Invalid book ID.')
 	})
 
 exports.index = async (req, res) => {
-	const result = await Promise.all([
-		books.count(),
-		authors.count(),
-		genres.count(),
-		bookInstances.count(),
-		bookInstances.count({ status: 'Available' }),
-		suggestions.find('cover_id', 'title', 'snippet', 'book_url'),
-	])
-
-	log('DEBUG...', pink)
-	await fetchCatalog()
+	const result = await fetchCatalog()
 
 	res.render('catalog_active_home.hbs', {
 		title: 'Archivia',
 		book_count: result[0],
 		author_count: result[1],
 		genre_count: result[2],
-		available_count: result[4],
-		total_count: result[3],
-		recent_books: result[5],
+		recent_books: result[3],
 	})
 }
 exports.book_list = [

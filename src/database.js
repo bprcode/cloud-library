@@ -27,14 +27,6 @@ function format(query, ...args) {
 }
 
 async function fetchCatalog() {
-	// 	SELECT count(*) FROM lib.books JOIN lib.authors USING(author_id)
-	// SELECT count(*) FROM lib.authors
-	// SELECT count(*) FROM lib.genres
-	// SELECT count(*) FROM lib.book_instance
-	// SELECT count(*) FROM lib.book_instance
-	//  values: Available
-	// SELECT cover_id, title, snippet, book_url FROM lib.spotlight_works JOIN lib.books USING(book_id) ORDER BY serial, index_title
-
 	const client = new Client(clientArgs)
 
 	try {
@@ -46,16 +38,18 @@ async function fetchCatalog() {
 			),
 			client.query(`SELECT count(*) FROM lib.authors`),
 			client.query(`SELECT count(*) FROM lib.genres`),
-			client.query(`SELECT count(*) FROM lib.book_instance`),
 			client.query(
-				`SELECT count(*) FROM lib.book_instance WHERE status = 'Available'`
-			),
-			client.query(
-				`SELECT cover_id, title, snippet, book_url FROM lib.spotlight_works JOIN lib.books USING(book_id) ORDER BY serial, index_title`
+				`SELECT cover_id, title, snippet, book_url FROM lib.spotlight_works ` +
+					`JOIN lib.books USING(book_id) ORDER BY serial, index_title`
 			),
 		])
 
-		dbLog('debug: got results:', blue, results.map(r => r.rows))
+		return [
+			results[0].rows[0].count,
+			results[1].rows[0].count,
+			results[2].rows[0].count,
+			results[3].rows,
+		]
 	} catch (e) {
 		dbLog('Catalog fetch error:', pink, e)
 	} finally {
