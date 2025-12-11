@@ -14,11 +14,8 @@ const Handlebars = require('handlebars/runtime')
 global.Handlebars = Handlebars;
 
 require('../built/partials')
-require('../built/templates')
-
-// TODO
-// hbs.registerPartials(path.join(__dirname, '/views/partials'))
-// hbs.registerPartials(path.join(__dirname, '/public/templates'))
+require('../built/shared-partials')
+require('../built/backend-templates')
 
 hbs.registerHelper('match', (a, b) => a === b)
 hbs.registerHelper('match-string', (a, b) => String(a) === String(b))
@@ -76,7 +73,6 @@ app
 	// Patch render method to directly reference compiled template bundle:
 	.use((req, res, next) => {
 		res.render = (template, options) => {
-			console.log('## RENDER ATTEMPT:', template, 'with options:', options)
 			const templateName = template.split('.')[0]
 
 			if(!Handlebars) {
@@ -90,8 +86,6 @@ app
 				throw new Error(`${template} not found in templates`)
 			}
 
-			const test = Handlebars.templates[templateName](options)
-			console.log('TEST RENDER:\n', test)
 			res.send(Handlebars.templates[templateName](options))
 		}
 
@@ -107,34 +101,13 @@ app
 	.use('/catalog', catalogRouter)
 	.use('/reset', resetRouter)
 
-	.get('/templates', (req, res) => {
-		res.json(Object.keys(Handlebars.templates))
-	})
-	.get('/ec', (req, res) => {
-		res.render('error.hbs')
-	})
-	.get('/foo', (req, res) => {
-
-		// res.render('lean_home.hbs')
-		
-		res.render('book_list.hbs', {
-                books: [],
-                noResults: true,
-                total: 0,
-                allResults: true,
-                populate: { search: 'example' }
-            })
-	})
-
 	.use((req, res, next) => {
-		console.log('###### 404')
 		res.status(404)
 		throw new Error('File not found.')
 	})
 
 	// TODO
 	.use((err, req, res, next) => {
-		console.log('###### ERROR')
 		res.render('error.hbs', {
 			title: 'Error Encountered',
 			status_code: res.statusCode,
