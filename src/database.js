@@ -11,10 +11,10 @@ if (process.env.NODE_ENV === 'production') {
 // which is unsupported on Cloudflare Workers.
 // DOES NOT PERFORM SANITIZATION.
 function format(query, ...args) {
-    dbLog('TODO: replace this reformatting request later: ', pink, query, '\nwith args:', args.join(', '))
     for(const replacement of args) {
         query = query.replace('%I', replacement)
     }
+    dbLog('TODO: replace this reformatting approach later: ', pink, query)
     return query
 }
 
