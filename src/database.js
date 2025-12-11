@@ -6,6 +6,15 @@ if (process.env.NODE_ENV === 'production') {
 	dbLog = (_) => {}
 }
 
+const clientArgs = {
+	ssl:
+		process.env.NODE_ENV === 'production'
+			? {
+					rejectUnauthorized: false,
+			  }
+			: undefined,
+}
+
 // Drop-in replacement for pg-format,
 // which is unsupported on Cloudflare Workers.
 // Does not perform sanitization; must not be used for client input.
@@ -13,21 +22,53 @@ function format(query, ...args) {
 	for (const replacement of args) {
 		query = query.replace('%I', replacement)
 	}
-	
+
 	return query
+}
+
+async function fetchCatalog() {
+	// 	SELECT count(*) FROM lib.books JOIN lib.authors USING(author_id)
+	// SELECT count(*) FROM lib.authors
+	// SELECT count(*) FROM lib.genres
+	// SELECT count(*) FROM lib.book_instance
+	// SELECT count(*) FROM lib.book_instance
+	//  values: Available
+	// SELECT cover_id, title, snippet, book_url FROM lib.spotlight_works JOIN lib.books USING(book_id) ORDER BY serial, index_title
+
+	const client = new Client(clientArgs)
+
+	try {
+		await client.connect()
+
+		const results = await Promise.all([
+			client.query(
+				`SELECT count(*) FROM lib.books JOIN lib.authors USING(author_id)`
+			),
+			client.query(`SELECT count(*) FROM lib.authors`),
+			client.query(`SELECT count(*) FROM lib.genres`),
+			client.query(`SELECT count(*) FROM lib.book_instance`),
+			client.query(
+				`SELECT count(*) FROM lib.book_instance WHERE status = 'Available'`
+			),
+			client.query(
+				`SELECT cover_id, title, snippet, book_url FROM lib.spotlight_works JOIN lib.books USING(book_id) ORDER BY serial, index_title`
+			),
+		])
+
+		dbLog('debug: got results:', blue, results.map(r => r.rows))
+	} catch (e) {
+		dbLog('Catalog fetch error:', pink, e)
+	} finally {
+		await client.end()
+	}
 }
 
 // Run a query, but just return the rows, or row for single results,
 // or null for no results.
 async function queryResult(...etc) {
-	const client = new Client({
-		ssl: process.env.NODE_ENV === 'production' ? {
-			rejectUnauthorized: false
-		} : undefined
-	})
+	const client = new Client(clientArgs)
 
 	try {
-        dbLog('Connecting client...', yellow, ...etc)
 		await client.connect()
 		const rows = (await client.query(...etc)).rows
 		if (rows.length === 0) {
@@ -39,7 +80,6 @@ async function queryResult(...etc) {
 		dbLog('Database client error:', pink, e)
 	} finally {
 		await client.end()
-		dbLog('Client released', yellow)
 	}
 }
 
@@ -170,7 +210,6 @@ class Model {
 
 		dbLog(sql, green)
 		const result = await queryResult(sql + where, where.values)
-		console.log('got query result:', result)
 		return result[0].count
 	}
 
@@ -373,6 +412,7 @@ async function bookStatusList() {
 }
 
 module.exports = {
+	fetchCatalog,
 	queryResult,
 	snipTimes,
 	books,
