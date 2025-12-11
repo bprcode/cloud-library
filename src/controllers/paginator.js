@@ -1,41 +1,82 @@
 const { query } = require('express-validator')
 
 module.exports.sanitizePagination = [
-    query('page').toInt().customSanitizer(v => v < 1 ? 1 : v),
-    query('limit').toInt().customSanitizer(v => v < 1 ? 1 : v)
+	query('page')
+		.toInt()
+		.customSanitizer((v) => (v < 1 ? 1 : v)),
+	query('limit')
+		.toInt()
+		.customSanitizer((v) => (v < 1 ? 1 : v)),
 ]
 
+module.exports.includePagination = (req, res, next) => {
+	const queryPage = parseInt(req.query.page) || 1
+	const queryLimit = parseInt(req.query.limit) || 10
+
+	req.sanitizedPagination = {
+		page: queryPage < 1 ? 1 : queryPage,
+		limit: queryLimit < 1 ? 1 : queryLimit,
+	}
+
+	next()
+}
+
 module.exports.paginate = function (page, limit, total) {
-    page = parseInt(page)
-    limit = parseInt(limit)
-    total = parseInt(total)
+	page = parseInt(page)
+	limit = parseInt(limit)
+	total = parseInt(total)
 
-    const currentPage = page || 1
-    let nextPage = null
-    let previousPage = null
-    let moreAfter = undefined
-    let moreBefore = undefined
-    let firstPage = undefined
-    let lastPage = undefined
+	const currentPage = page || 1
+	let nextPage = null
+	let previousPage = null
+	let moreAfter = undefined
+	let moreBefore = undefined
+	let firstPage = undefined
+	let lastPage = undefined
 
-    let allResults = false
-    let countStart = ((page - 1) * limit) + 1
-    let countEnd = Math.min(countStart + limit - 1, total)
-                        || limit
-                        || total
-    
-    countStart ||= 1
+	let allResults = false
+	let countStart = (page - 1) * limit + 1
+	let countEnd = Math.min(countStart + limit - 1, total) || limit || total
 
-    if (countEnd > total) { countEnd = total }
-    if (countStart === 1 && countEnd === total) { allResults = true }
-    if (countEnd < total) { nextPage = currentPage + 1 }
-    if (countStart > 1) { previousPage = currentPage - 1}
-    if (countEnd + limit < total) { lastPage = Math.ceil(total / limit) }
-    if (countStart - limit > 1) { firstPage = 1 }
-    if (countEnd + 2 * limit < total ) { moreAfter = true }
-    if (countStart - 2 * limit > 1 ) { moreBefore = true }
+	countStart ||= 1
 
-    return { countStart, countEnd, total, allResults, limit,
-                firstPage, moreBefore, previousPage,
-                currentPage, nextPage, moreAfter, lastPage }
+	if (countEnd > total) {
+		countEnd = total
+	}
+	if (countStart === 1 && countEnd === total) {
+		allResults = true
+	}
+	if (countEnd < total) {
+		nextPage = currentPage + 1
+	}
+	if (countStart > 1) {
+		previousPage = currentPage - 1
+	}
+	if (countEnd + limit < total) {
+		lastPage = Math.ceil(total / limit)
+	}
+	if (countStart - limit > 1) {
+		firstPage = 1
+	}
+	if (countEnd + 2 * limit < total) {
+		moreAfter = true
+	}
+	if (countStart - 2 * limit > 1) {
+		moreBefore = true
+	}
+
+	return {
+		countStart,
+		countEnd,
+		total,
+		allResults,
+		limit,
+		firstPage,
+		moreBefore,
+		previousPage,
+		currentPage,
+		nextPage,
+		moreAfter,
+		lastPage,
+	}
 }

@@ -9,9 +9,15 @@ const {
 	bookGenres,
 	spotlightWorks,
 	suggestions,
-	fetchCatalog,
+	makeQuery,
+	catalogQuery,
+	bookListQuery,
 } = require('../database.js')
-const { paginate, sanitizePagination } = require('./paginator.js')
+const {
+	paginate,
+	sanitizePagination,
+	includePagination,
+} = require('./paginator.js')
 const axios = require('axios')
 const Fuse = require('fuse.js')
 
@@ -73,7 +79,7 @@ const bookIdValidator = param('id', 'Invalid book ID.')
 	})
 
 exports.index = async (req, res) => {
-	const result = await fetchCatalog()
+	const result = await makeQuery(catalogQuery)
 
 	res.render('catalog_active_home.hbs', {
 		title: 'Archivia',
@@ -84,9 +90,8 @@ exports.index = async (req, res) => {
 	})
 }
 exports.book_list = [
-	...sanitizePagination,
+	includePagination,
 	async (req, res) => {
-		const limit = req.query.limit || 10
 		const query = req.query.q || null
 
 		if (query) {
@@ -114,16 +119,17 @@ exports.book_list = [
 			})
 		}
 
-		const [bookList, total] = await Promise.all([
-			books.find('book_url', 'title', 'snippet', 'author_url', 'full_name', {
-				_page: req.query.page,
-				_limit: limit,
-			}),
+		const [bookList, total] = await makeQuery(
+			bookListQuery,
+			req.sanitizedPagination.page,
+			req.sanitizedPagination.limit
+		)
 
-			justBooks.count(),
-		])
-
-		const position = paginate(req.query.page, limit, total)
+		const position = paginate(
+			req.sanitizedPagination.page,
+			req.sanitizedPagination.limit,
+			total
+		)
 
 		res.render('book_list.hbs', {
 			books: bookList,

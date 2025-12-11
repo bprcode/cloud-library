@@ -26,35 +26,57 @@ function format(query, ...args) {
 	return query
 }
 
-async function fetchCatalog() {
+// Optimized composite queries for Cloudflare Workers constraints:
+async function makeQuery(queryCallback, ...args) {
 	const client = new Client(clientArgs)
 
 	try {
+		dbLog('connect',yellow)
 		await client.connect()
-
-		const results = await Promise.all([
-			client.query(
-				`SELECT count(*) FROM lib.books JOIN lib.authors USING(author_id)`
-			),
-			client.query(`SELECT count(*) FROM lib.authors`),
-			client.query(`SELECT count(*) FROM lib.genres`),
-			client.query(
-				`SELECT cover_id, title, snippet, book_url FROM lib.spotlight_works ` +
-					`JOIN lib.books USING(book_id) ORDER BY serial, index_title`
-			),
-		])
-
-		return [
-			results[0].rows[0].count,
-			results[1].rows[0].count,
-			results[2].rows[0].count,
-			results[3].rows,
-		]
+		
+		return await queryCallback(client, ...args)
 	} catch (e) {
-		dbLog('Catalog fetch error:', pink, e)
+		dbLog('Client query fetch error:', pink, e)
+		throw e
+		
 	} finally {
+		dbLog('close',yellow)
 		await client.end()
 	}
+}
+
+async function catalogQuery(client) {
+	const results = await Promise.all([
+		client.query(
+			`SELECT count(*) FROM lib.books JOIN lib.authors USING(author_id)`
+		),
+		client.query(`SELECT count(*) FROM lib.authors`),
+		client.query(`SELECT count(*) FROM lib.genres`),
+		client.query(
+			`SELECT cover_id, title, snippet, book_url FROM lib.spotlight_works ` +
+				`JOIN lib.books USING(book_id) ORDER BY serial, index_title`
+		),
+	])
+
+	return [
+		results[0].rows[0].count,
+		results[1].rows[0].count,
+		results[2].rows[0].count,
+		results[3].rows,
+	]
+}
+
+async function bookListQuery(client, page, limit) {
+	dbLog('placeholder stub with page and limit: ', yellow, page, ' ', limit)
+
+	const results = await Promise.all([
+		client.query(`SELECT book_url, title, snippet, author_url, full_name `
+			+`FROM lib.books JOIN lib.authors USING(author_id) `
+			+`ORDER BY index_title, last_name, first_name LIMIT $1 OFFSET $2`, [limit, paginationOffset(page, limit)]),
+		client.query(`SELECT count(*) FROM lib.books`),
+	])
+
+	return [results[0].rows, results[1].rows[0].count]
 }
 
 // Run a query, but just return the rows, or row for single results,
@@ -101,6 +123,10 @@ async function snipTimes(source) {
 	}
 
 	return result
+}
+
+function paginationOffset(page, limit) {
+	return (page - 1) * limit || 0
 }
 
 /**
@@ -406,7 +432,9 @@ async function bookStatusList() {
 }
 
 module.exports = {
-	fetchCatalog,
+	makeQuery,
+	catalogQuery,
+	bookListQuery,
 	queryResult,
 	snipTimes,
 	books,
