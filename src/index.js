@@ -7,7 +7,6 @@ const helmet = require('helmet')
 
 // Initialize templating
 const { DateTime } = require('luxon')
-const hbs = require('hbs')
 
 // Precompilation templating
 const Handlebars = require('handlebars/runtime')
@@ -17,16 +16,16 @@ require('../built/partials')
 require('../built/shared-partials')
 require('../built/backend-templates')
 
-hbs.registerHelper('match', (a, b) => a === b)
-hbs.registerHelper('match-string', (a, b) => String(a) === String(b))
-hbs.registerHelper('find-in', (arr, key, value) => {
+Handlebars.registerHelper('match', (a, b) => a === b)
+Handlebars.registerHelper('match-string', (a, b) => String(a) === String(b))
+Handlebars.registerHelper('find-in', (arr, key, value) => {
 	return arr?.find((e) => e[key] === value)
 })
-hbs.registerHelper('extract-year', (dateString) => {
+Handlebars.registerHelper('extract-year', (dateString) => {
 	return dateString?.match(/\d*/)[0]
 })
 
-hbs.registerHelper('pretty-date', (date) => {
+Handlebars.registerHelper('pretty-date', (date) => {
 	if (!date) {
 		return ''
 	}
@@ -38,16 +37,16 @@ hbs.registerHelper('pretty-date', (date) => {
 	}
 	return DateTime.fromISO(date).toLocaleString(DateTime.DATE_MED)
 })
-hbs.registerHelper('plural-s', (count) => (count > 1 ? 's' : ''))
+Handlebars.registerHelper('plural-s', (count) => (count > 1 ? 's' : ''))
 
 // Helper to use position in iterable to insert a comma, or not:
-hbs.registerHelper('comma-list', (...stuff) => {
+Handlebars.registerHelper('comma-list', (...stuff) => {
 	if (!stuff[stuff.length - 1].data.last) return `, `
 	else return ``
 })
 
 // Obtain an error status message, or undefined if not set:
-hbs.registerHelper('error-check', (trouble, name) => {
+Handlebars.registerHelper('error-check', (trouble, name) => {
 	if (trouble) return trouble.find((t) => t.param === name)?.msg
 	return undefined
 })
@@ -110,15 +109,13 @@ app
 		throw new Error('File not found.')
 	})
 
-	// DEBUG
 	.use((err, req, res, next) => {
 		res.render('error.hbs', {
 			title: 'Error Encountered',
 			status_code: res.statusCode,
 			error_message: err.message,
 			error_stack:
-				err.stack,
-				// process.env.NODE_ENV !== 'production' ? err.stack : undefined,
+				process.env.NODE_ENV !== 'production' ? err.stack : undefined,
 		})
 	})
 

@@ -13,7 +13,7 @@ function format(query, ...args) {
 	for (const replacement of args) {
 		query = query.replace('%I', replacement)
 	}
-	dbLog('TODO: replace this reformatting approach later: ', pink, query)
+	
 	return query
 }
 
