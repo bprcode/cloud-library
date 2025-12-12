@@ -31,18 +31,42 @@ async function makeQuery(queryCallback, ...args) {
 	const client = new Client(clientArgs)
 
 	try {
-		dbLog('connect',yellow)
 		await client.connect()
-		
 		return await queryCallback(client, ...args)
 	} catch (e) {
 		dbLog('Client query fetch error:', pink, e)
 		throw e
-		
 	} finally {
-		dbLog('close',yellow)
 		await client.end()
 	}
+}
+
+async function trigramTitleQuery(client, fuzzy) {
+	await client.query(`SET pg_trgm.similarity_threshold = 0.1`)
+	const results = await client.query(
+		`
+			SELECT 
+				book_url,
+				title,
+				snippet,
+				author_url,
+				full_name,
+			(CASE
+				WHEN title ~* ('\\m' || $1 ) THEN 10
+				WHEN title ILIKE '%' || $1 || '%' THEN 5
+				ELSE 0
+			END)
+				+ word_similarity(title, $1)
+				AS score
+				FROM lib.books JOIN lib.authors USING(author_id)
+				WHERE title % $1
+				ORDER BY score DESC
+				LIMIT 100
+		`,
+		[fuzzy]
+	)
+
+	return results.rows
 }
 
 async function catalogQuery(client) {
@@ -67,16 +91,27 @@ async function catalogQuery(client) {
 }
 
 async function bookListQuery(client, page, limit) {
-	dbLog('placeholder stub with page and limit: ', yellow, page, ' ', limit)
-
 	const results = await Promise.all([
-		client.query(`SELECT book_url, title, snippet, author_url, full_name `
-			+`FROM lib.books JOIN lib.authors USING(author_id) `
-			+`ORDER BY index_title, last_name, first_name LIMIT $1 OFFSET $2`, [limit, paginationOffset(page, limit)]),
+		client.query(
+			`SELECT book_url, title, snippet, author_url, full_name ` +
+				`FROM lib.books JOIN lib.authors USING(author_id) ` +
+				`ORDER BY index_title, last_name, first_name LIMIT $1 OFFSET $2`,
+			[limit, paginationOffset(page, limit)]
+		),
 		client.query(`SELECT count(*) FROM lib.books`),
 	])
 
 	return [results[0].rows, results[1].rows[0].count]
+}
+
+async function allBooksQuery(client) {
+	const results = await client.query(
+		`SELECT book_url, title, snippet, author_url, full_name ` +
+			`FROM lib.books JOIN lib.authors USING(author_id) ` +
+			`ORDER BY index_title, last_name, first_name`
+	)
+
+	return results.rows
 }
 
 // Run a query, but just return the rows, or row for single results,
@@ -433,8 +468,10 @@ async function bookStatusList() {
 
 module.exports = {
 	makeQuery,
+	trigramTitleQuery,
 	catalogQuery,
 	bookListQuery,
+	allBooksQuery,
 	queryResult,
 	snipTimes,
 	books,

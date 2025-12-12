@@ -12,6 +12,8 @@ const {
 	makeQuery,
 	catalogQuery,
 	bookListQuery,
+	allBooksQuery,
+	trigramTitleQuery,
 } = require('../database.js')
 const {
 	paginate,
@@ -19,7 +21,6 @@ const {
 	includePagination,
 } = require('./paginator.js')
 const axios = require('axios')
-const Fuse = require('fuse.js')
 
 const preventTitleCollision = body('title')
 	.trim()
@@ -95,23 +96,10 @@ exports.book_list = [
 		const query = req.query.q || null
 
 		if (query) {
-			const allBooks = await books.find(
-				'book_url',
-				'title',
-				'snippet',
-				'author_url',
-				'full_name'
-			)
-			const fuse = new Fuse(allBooks, {
-				keys: ['title'],
-				threshold: 0.3,
-				ignoreLocation: true,
-				minMatchCharLength: 2,
-				includeScore: true,
-			})
-			const matches = fuse.search(req.query.q)
+			const matches = await makeQuery(trigramTitleQuery, query)
+
 			return res.render('book_list.hbs', {
-				books: matches.map((e) => e.item),
+				books: matches,
 				noResults: !Boolean(matches.length),
 				total: matches.length,
 				allResults: true,
