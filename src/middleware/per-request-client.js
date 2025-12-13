@@ -1,11 +1,11 @@
 const { Client } = require('pg')
 const clientArgs = {
-  ssl:
-    process.env.NODE_ENV === 'production'
-      ? {
-          rejectUnauthorized: false,
-        }
-      : undefined,
+	ssl:
+		process.env.NODE_ENV === 'production'
+			? {
+					rejectUnauthorized: false,
+			  }
+			: undefined,
 }
 
 async function perRequestClient(req, res, next) {
@@ -24,10 +24,10 @@ async function perRequestClient(req, res, next) {
 	try {
 		await client.connect()
 		req.client = client
-		return next()
+		next()
 	} catch (e) {
 		await release()
-		return next(e)
+		next(e)
 	}
 }
 

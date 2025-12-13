@@ -17,10 +17,10 @@ router
 	.get('/book/:id/delete', bookController.book_delete_get) // AUDIT
 	.post('/book/:id/delete', bookController.book_delete_post) // AUDIT
 	.get('/book/update', bookController.book_update_choose) // AUDIT
-	.get('/book/:id/update', bookController.book_update_get) // AUDIT
+	.get('/book/:id/update', bookController.book_update_get)
 	.post('/book/:id/update', bookController.book_update_post) // AUDIT
-	.get('/book/:id', bookController.book_detail) // AUDIT
-	.get('/books', bookController.book_list) // AUDIT
+	.get('/book/:id', bookController.book_detail)
+	.get('/books', bookController.book_list)
 
 	.get('/author/import', authorController.author_import_get) // AUDIT
 	.post('/author/json', authorController.author_json_post) // AUDIT

@@ -69,19 +69,20 @@ const bookValidators = [
 		.withMessage('Invalid genre.'),
 ]
 
-const bookIdValidator = param('id', 'Invalid book ID.')
-	.trim()
-	.custom(async (value) => {
-		if (!(await books.find({ book_id: value })))
-			throw new Error(`Book ID not found.`)
-	})
+const bookIdValidator = async(req, res, next) => {
+	if(!req.params.id || !(await books.find(req, {book_id: req.params.id}))) {
+		req.trouble = 'Book ID not found.'
+	}
+	
+	return next()
+}
 
 exports.index = async (req, res) => {
 	const result = await Promise.all([
-		books.with(req).count(),
-		authors.with(req).count(),
-		genres.with(req).count(),
-		suggestions.with(req).find('cover_id', 'title', 'snippet', 'book_url'),
+		books.count(req),
+		authors.count(req),
+		genres.count(req),
+		suggestions.find(req, 'cover_id', 'title', 'snippet', 'book_url'),
 	])
 
 	res.render('catalog_active_home.hbs', {
@@ -113,13 +114,12 @@ exports.book_list = [
 
 		const [bookList, total] = await Promise.all([
 			books
-				.with(req)
-				.find('book_url', 'title', 'snippet', 'author_url', 'full_name', {
+				.find(req, 'book_url', 'title', 'snippet', 'author_url', 'full_name', {
 					page: req.sanitizedPagination.page,
 					limit: req.sanitizedPagination.limit,
 				}),
 
-			justBooks.with(req).count(),
+			justBooks.count(req),
 		])
 
 		const position = paginate(
@@ -137,9 +137,9 @@ exports.book_list = [
 ]
 exports.book_detail = async (req, res) => {
 	const [resultBook, resultInstances, resultGenres] = await Promise.all([
-		books.find({ book_id: req.params.id }),
-		bookInstances.find({ book_id: req.params.id }),
-		genresByBook.find({ book_id: req.params.id }),
+		books.find(req, { book_id: req.params.id }),
+		bookInstances.find(req, { book_id: req.params.id }),
+		genresByBook.find(req, { book_id: req.params.id }),
 	])
 
 	if (!resultBook) {
@@ -235,16 +235,15 @@ exports.book_create_post = [
 exports.book_update_get = [
 	bookIdValidator,
 	async (req, res) => {
-		const trouble = validationResult(req)
-		if (!trouble.isEmpty()) {
-			return res.redirect(`/catalog/book/update`)
+		if(req.trouble) {
+				return res.redirect(`/catalog/book/update`)
 		}
 
 		const [[previous], genreList, authorList, genreChecks] = await Promise.all([
-			books.find({ book_id: req.params.id }),
-			genres.find(),
-			authors.find(),
-			genresByBook.find({ book_id: req.params.id }),
+			books.find(req, { book_id: req.params.id }),
+			genres.find(req),
+			authors.find(req),
+			genresByBook.find(req, { book_id: req.params.id }),
 		])
 
 		res.render(`book_form.hbs`, {
@@ -319,7 +318,7 @@ exports.book_update_post = [
 	},
 ]
 exports.book_update_choose = async (req, res) => {
-	const result = await books.find()
+	const result = await books.find(req)
 	res.render(`book_action_choose.hbs`, { books: result, action: 'update' })
 }
 exports.book_delete_choose = async (req, res) => {

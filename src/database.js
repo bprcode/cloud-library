@@ -5,6 +5,7 @@ if (process.env.NODE_ENV === 'production') {
 	dbLog('Silencing database logs in production.', blue)
 	dbLog = (_) => {}
 }
+const http = require('http')
 
 const clientArgs = {
 	ssl:
@@ -310,15 +311,11 @@ class Model {
 		})
 	}
 
-	verifyClient() {
-		if (!this.req || !this.req.client) {
-			throw new Error('Missing request client')
+	verifyReq(req) {
+		if(!req || !(req instanceof http.IncomingMessage) || !req.client) {
+			log('Request invalid or client missing', pink)
+			throw new Error('Invalid request client')
 		}
-	}
-
-	with(req) {
-		this.req = req
-		return this
 	}
 
 	get relation() {
@@ -331,19 +328,19 @@ class Model {
 		return this.table
 	}
 
-	async count(conditions) {
-		this.verifyClient()
+	async count(req, conditions) {
+		this.verifyReq(req)
 
 		const sql = `SELECT count(*) FROM ${this.relation}`
 		const where = WhereClause.from(conditions)
 
 		dbLog(sql, green)
-		const result = await clientQuery(this.req.client, sql + where, where.values)
+		const result = await clientQuery(req.client, sql + where, where.values)
 		return result[0].count
 	}
 
-	delete(conditions) {
-		this.verifyClient()
+	delete(req, conditions) {
+		this.verifyReq(req)
 
 		if (!conditions)
 			throw new Error(`No WHERE-parameters specified for DELETE.`)
@@ -352,11 +349,11 @@ class Model {
 		const sql = `DELETE FROM ${this.relation} ${where}` + ` RETURNING *`
 
 		dbLog(sql, pink)
-		return clientQuery(this.req.client, sql, where.values)
+		return clientQuery(req.client, sql, where.values)
 	}
 
-	insert(item) {
-		this.verifyClient()
+	insert(req, item) {
+		this.verifyReq(req)
 
 		let clean = ``
 		let dirty =
@@ -372,7 +369,7 @@ class Model {
 		clean = format(dirty, ...Object.keys(item))
 		dbLog(clean, blue)
 
-		return clientQuery(this.req.client, clean, Object.values(item))
+		return clientQuery(req.client, clean, Object.values(item))
 	}
 
 	/**
@@ -382,8 +379,8 @@ class Model {
 	 * @param {Object} replace - The key-value pairs to substitute
 	 * @param {Object} where - The conditions to meet
 	 */
-	update(replace, where) {
-		this.verifyClient()
+	update(req, replace, where) {
+		this.verifyReq(req)
 
 		let clean = ``
 		let dirty = `UPDATE ${this.relation} SET `
@@ -404,7 +401,7 @@ class Model {
 		dbLog(dirty, yellow)
 		dbLog(clean, blue)
 
-		return clientQuery(this.req.client, clean, [
+		return clientQuery(req.client, clean, [
 			...whereClause.values,
 			...Object.values(replace),
 		])
@@ -415,8 +412,10 @@ class Model {
 	 * Ex: find('name', 'age', 'height', {state: 'NY', year: 1999})
 	 * @returns promise for query
 	 */
-	find(...etc) {
-		this.verifyClient()
+	find(req, ...etc) {
+		console.log('#VERIFY 1')
+		this.verifyReq(req)
+		console.log('#VERIFY 2')
 
 		let clean = ``
 		let dirty = `SELECT * FROM ${this.relation}`
@@ -426,7 +425,7 @@ class Model {
 		if (etc.length === 0) {
 			dirty += this.orderClause
 			dbLog(dirty, yellow)
-			return clientQuery(this.req.client, dirty) // Nothing to sanitize
+			return clientQuery(req.client, dirty) // Nothing to sanitize
 		}
 		// Otherwise...
 		if (typeof etc.at(-1) === 'object') {
@@ -464,7 +463,7 @@ class Model {
 		dbLog(clean, blue)
 		dbLog('parameters: ', dim, parameters)
 
-		return clientQuery(this.req.client, clean, parameters)
+		return clientQuery(req.client, clean, parameters)
 	}
 
 	join(other, key) {
