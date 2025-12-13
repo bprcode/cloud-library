@@ -236,7 +236,7 @@ exports.book_update_get = [
 	bookIdValidator,
 	async (req, res) => {
 		if(req.trouble) {
-				return res.redirect(`/catalog/book/update`)
+				return res.redirect(`/catalog/books`)
 		}
 
 		const [[previous], genreList, authorList, genreChecks] = await Promise.all([
@@ -317,14 +317,6 @@ exports.book_update_post = [
 		res.redirect(resultBook.book_url)
 	},
 ]
-exports.book_update_choose = async (req, res) => {
-	const result = await books.find(req)
-	res.render(`book_action_choose.hbs`, { books: result, action: 'update' })
-}
-exports.book_delete_choose = async (req, res) => {
-	const result = await books.find()
-	res.render(`book_action_choose.hbs`, { books: result, action: 'delete' })
-}
 exports.book_delete_get = [
 	bookIdValidator,
 	async (req, res) => {
