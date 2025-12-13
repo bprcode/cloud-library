@@ -78,8 +78,6 @@ exports.index = async (req, res) => {
         books.with(req).count(),
         authors.with(req).count(),
         genres.with(req).count(),
-        bookInstances.with(req).count(),
-        bookInstances.with(req).count({ status: 'Available' }),
         suggestions.with(req).find('cover_id', 'title', 'snippet', 'book_url')
     ])
 
@@ -88,9 +86,7 @@ exports.index = async (req, res) => {
         book_count: result[0],
         author_count: result[1],
         genre_count: result[2],
-        available_count: result[4],
-        total_count: result[3],
-        recent_books: result[5]
+        recent_books: result[3]
     })
 }
 exports.book_list = [
