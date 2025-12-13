@@ -229,10 +229,10 @@ exports.book_update_get = [
 		}
 
 		const [[previous], genreList, authorList, genreChecks] = await Promise.all([
-			books.find({ book_id: req.params.id }),
-			genres.find(),
-			authors.find(),
-			genresByBook.find({ book_id: req.params.id }),
+			books.with(req).find({ book_id: req.params.id }),
+			genres.with(req).find(),
+			authors.with(req).find(),
+			genresByBook.with(req).find({ book_id: req.params.id }),
 		])
 
 		res.render(`book_form.hbs`, {
@@ -252,8 +252,8 @@ exports.book_update_post = [
 	onlySelfTitleCollision,
 	async (req, res) => {
 		const [genreLabels, authorLabels] = await Promise.all([
-			genres.find(),
-			authors.find(),
+			genres.with(req).find(),
+			authors.with(req).find(),
 		])
 
 		const item = {
@@ -284,7 +284,7 @@ exports.book_update_post = [
 		}
 
 		// Remove the old book_genres table entries
-		await bookGenres.delete({ book_id: req.params.id })
+		await bookGenres.with(req).delete({ book_id: req.params.id })
 		const [resultBook] = await justBooks.update(item, {
 			book_id: req.params.id,
 		})
@@ -293,7 +293,7 @@ exports.book_update_post = [
 		const bookID = resultBook.book_id
 		for (const genreID of req.body.genreList) {
 			try {
-				await bookGenres.insert({
+				await bookGenres.with(req).insert({
 					book_id: bookID,
 					genre_id: genreID,
 				})
@@ -307,7 +307,7 @@ exports.book_update_post = [
 	},
 ]
 exports.book_update_choose = async (req, res) => {
-	const result = await books.find()
+	const result = await books.with(req).find()
 	res.render(`book_action_choose.hbs`, { books: result, action: 'update' })
 }
 exports.book_delete_choose = async (req, res) => {

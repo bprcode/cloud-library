@@ -15,14 +15,15 @@ const instanceValidators = [
     body('imprint', 'Imprint required')
         .trim()
         .isLength({ min: 1 }),
-    body('status')
-        .isLength({ min: 1})
-        .custom(async value => {
-            const validStatusList = await bookStatusList()
-            if (!validStatusList.includes(value) )
-                throw new Error(`Status not recognized.`)
-        })
-        .withMessage('Invalid status.'),
+    // debug -- not supported by refactor
+    // body('status')
+    //     .isLength({ min: 1})
+    //     .custom(async value => {
+    //         const validStatusList = await bookStatusList()
+    //         if (!validStatusList.includes(value) )
+    //             throw new Error(`Status not recognized.`)
+    //     })
+        // .withMessage('Invalid status.'),
     body('due_back', 'Invalid date')
         .optional({ checkFalsy: true })
         .isISO8601()
@@ -72,7 +73,7 @@ exports.bookinstance_detail = async (req, res) => {
 exports.bookinstance_create_get = async (req, res) => {
     const [bookList, statusList] = await Promise.all([
         justBooks.find(),
-        bookStatusList()
+        bookStatusList(req.client)
     ])
 
     res.render(`bookinstance_form.hbs`, {
@@ -90,7 +91,7 @@ exports.bookinstance_create_post = [
         let result
         const [bookList, statusList] = await Promise.all([
             justBooks.find(),
-            bookStatusList()
+            bookStatusList(req.client)
         ])
 
         const trouble = validationResult(req)
@@ -140,7 +141,7 @@ exports.bookinstance_update_get = [
             await Promise.all([
                 snipTimes(inventory.find({ instance_id: req.params.id })),
                 justBooks.find(),
-                bookStatusList()
+                bookStatusList(req.client)
             ])
 
         res.render(`bookinstance_form.hbs`, {
@@ -160,7 +161,7 @@ exports.bookinstance_update_post = [
         const [bookList, statusList] = 
             await Promise.all([
                 justBooks.find(),
-                bookStatusList()
+                bookStatusList(req.client)
             ])
 
         const item = {

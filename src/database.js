@@ -157,13 +157,9 @@ async function allBooksQuery(client) {
 	return results.rows
 }
 
-// Run a query, but just return the rows, or row for single results,
-// or null for no results.
-async function queryResult(...etc) {
-	const client = new Client(clientArgs)
+async function clientQuery(client, ...etc) {
 
 	try {
-		await client.connect()
 		const rows = (await client.query(...etc)).rows
 		if (rows.length === 0) {
 			return null
@@ -172,8 +168,6 @@ async function queryResult(...etc) {
 		return rows
 	} catch (e) {
 		dbLog('Database client error:', pink, e)
-	} finally {
-		await client.end()
 	}
 }
 
@@ -284,12 +278,25 @@ class WhereClause {
 // Note: Constructor values are an injection risk
 // and should not be based on user input.
 class Model {
+	req = null
+
 	constructor(properties) {
 		Object.assign(this, {
 			schema: undefined,
 			table: 'default_table',
 			...properties,
 		})
+	}
+
+	verifyClient() {
+		if(!this.req || !this.req.client) {
+			throw new Error('Missing request client')
+		}
+	}
+
+	with(req) {
+		this.req = req
+		return this
 	}
 
 	get relation() {
@@ -303,15 +310,17 @@ class Model {
 	}
 
 	async count(conditions) {
+		this.verifyClient()
 		const sql = `SELECT count(*) FROM ${this.relation}`
 		const where = WhereClause.from(conditions)
 
 		dbLog(sql, green)
-		const result = await queryResult(sql + where, where.values)
+		const result = await clientQuery(this.req.client, sql + where, where.values)
 		return result[0].count
 	}
 
 	delete(conditions) {
+		this.verifyClient()
 		if (!conditions)
 			throw new Error(`No WHERE-parameters specified for DELETE.`)
 
@@ -319,10 +328,11 @@ class Model {
 		const sql = `DELETE FROM ${this.relation} ${where}` + ` RETURNING *`
 
 		dbLog(sql, pink)
-		return queryResult(sql, where.values)
+		return clientQuery(this.req.client, sql, where.values)
 	}
 
 	insert(item) {
+		this.verifyClient()
 		let clean = ``
 		let dirty =
 			`INSERT INTO ${this.relation} (` +
@@ -337,7 +347,7 @@ class Model {
 		clean = format(dirty, ...Object.keys(item))
 		dbLog(clean, blue)
 
-		return queryResult(clean, Object.values(item))
+		return clientQuery(this.req.client, clean, Object.values(item))
 	}
 
 	/**
@@ -348,6 +358,7 @@ class Model {
 	 * @param {Object} where - The conditions to meet
 	 */
 	update(replace, where) {
+		this.verifyClient()
 		let clean = ``
 		let dirty = `UPDATE ${this.relation} SET `
 		const whereClause = WhereClause.from(where)
@@ -367,7 +378,7 @@ class Model {
 		dbLog(dirty, yellow)
 		dbLog(clean, blue)
 
-		return queryResult(clean, [
+		return clientQuery(this.req.client, clean, [
 			...whereClause.values,
 			...Object.values(replace),
 		])
@@ -379,6 +390,8 @@ class Model {
 	 * @returns promise for query
 	 */
 	find(...etc) {
+		this.verifyClient()
+
 		let clean = ``
 		let dirty = `SELECT * FROM ${this.relation}`
 		let where = null
@@ -387,7 +400,7 @@ class Model {
 		if (etc.length === 0) {
 			dirty += this.orderClause
 			dbLog(dirty, yellow)
-			return queryResult(dirty) // Nothing to sanitize
+			return clientQuery(this.req.client, dirty) // Nothing to sanitize
 		}
 		// Otherwise...
 		if (typeof etc.at(-1) === 'object') {
@@ -425,7 +438,7 @@ class Model {
 		dbLog(clean, blue)
 		dbLog('parameters: ', dim, parameters)
 
-		return queryResult(clean, parameters)
+		return clientQuery(this.req.client, clean, parameters)
 	}
 
 	join(other, key) {
@@ -503,9 +516,13 @@ const suggestions = spotlightWorks.join(justBooks, 'book_id')
  * Retrieve an array of book status strings.
  * @returns Promise
  */
-async function bookStatusList() {
+async function bookStatusList(client) {
+	if(!client) {
+		throw new Error('No client provided to bookStatusList')
+	}
+
 	return (
-		await queryResult(`SELECT unnest(enum_range(NULL::lib.book_status))`)
+		await client.query(`SELECT unnest(enum_range(NULL::lib.book_status))`)
 	).map((e) => e.unnest)
 }
 
@@ -516,7 +533,6 @@ module.exports = {
 	catalogQuery,
 	bookListQuery,
 	allBooksQuery,
-	queryResult,
 	snipTimes,
 	books,
 	justBooks,
