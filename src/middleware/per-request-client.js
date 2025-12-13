@@ -13,7 +13,7 @@ async function perRequestClient(req, res, next) {
 
 	const release = async () => {
 		try {
-			// log('👋 Request done, releasing client')
+			log('👋 Request done, releasing client')
 			await client.end()
 		} catch (e) {
 			log('Error releasing client:', pink, e)
@@ -23,7 +23,7 @@ async function perRequestClient(req, res, next) {
 	res.once('close', release)
 
 	try {
-		// log('🫳 request received, starting client')
+		log('🫳 request received, starting client')
 		await client.connect()
 		req.client = client
 		return next()

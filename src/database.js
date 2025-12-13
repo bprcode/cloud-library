@@ -246,10 +246,18 @@ class WhereClause {
 		}
 
 		let index = 1
+
+		if ('_page' in conditions) {
+			throw new Error('_page is deprecated; where-clause needs revision.')
+		}
+
 		const pagination = snipPagination(conditions)
 
-		this.offset = pagination.offset
-		this.limit = pagination.limit
+		this.offset = (conditions.page - 1) * (conditions.limit || 0)
+		this.limit = conditions.limit
+
+		delete conditions.page
+		delete conditions.limit
 
 		if (Object.keys(conditions).length === 0) {
 			return
@@ -376,7 +384,7 @@ class Model {
 	 */
 	update(replace, where) {
 		this.verifyClient()
-		
+
 		let clean = ``
 		let dirty = `UPDATE ${this.relation} SET `
 		const whereClause = WhereClause.from(where)
