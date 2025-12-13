@@ -54,11 +54,26 @@ SELECT * FROM lib.authors ORDER BY last_name, first_name
 SELECT * FROM lib.book_genres JOIN lib.genres USING(genre_id) WHERE book_id::text ILIKE $1 ORDER BY name
 */
 	const results = await Promise.all([
-		client.query(`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE book_id::text ILIKE $1 ORDER BY index_title, last_name, first_name`, bookId),
-		client.query(`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE book_id::text ILIKE $1 ORDER BY index_title, last_name, first_name`, bookId),
-		client.query(`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE book_id::text ILIKE $1 ORDER BY index_title, last_name, first_name`, bookId),
-		client.query(`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE book_id::text ILIKE $1 ORDER BY index_title, last_name, first_name`, bookId),
-		client.query(`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE book_id::text ILIKE $1 ORDER BY index_title, last_name, first_name`, bookId),
+		client.query(
+			`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE book_id::text ILIKE $1 ORDER BY index_title, last_name, first_name`,
+			bookId
+		),
+		client.query(
+			`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE book_id::text ILIKE $1 ORDER BY index_title, last_name, first_name`,
+			bookId
+		),
+		client.query(
+			`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE book_id::text ILIKE $1 ORDER BY index_title, last_name, first_name`,
+			bookId
+		),
+		client.query(
+			`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE book_id::text ILIKE $1 ORDER BY index_title, last_name, first_name`,
+			bookId
+		),
+		client.query(
+			`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE book_id::text ILIKE $1 ORDER BY index_title, last_name, first_name`,
+			bookId
+		),
 	])
 }
 async function bookDetailQuery(client, bookId) {
@@ -158,7 +173,6 @@ async function allBooksQuery(client) {
 }
 
 async function clientQuery(client, ...etc) {
-
 	try {
 		const rows = (await client.query(...etc)).rows
 		if (rows.length === 0) {
@@ -289,7 +303,7 @@ class Model {
 	}
 
 	verifyClient() {
-		if(!this.req || !this.req.client) {
+		if (!this.req || !this.req.client) {
 			throw new Error('Missing request client')
 		}
 	}
@@ -311,6 +325,7 @@ class Model {
 
 	async count(conditions) {
 		this.verifyClient()
+
 		const sql = `SELECT count(*) FROM ${this.relation}`
 		const where = WhereClause.from(conditions)
 
@@ -321,6 +336,7 @@ class Model {
 
 	delete(conditions) {
 		this.verifyClient()
+
 		if (!conditions)
 			throw new Error(`No WHERE-parameters specified for DELETE.`)
 
@@ -333,6 +349,7 @@ class Model {
 
 	insert(item) {
 		this.verifyClient()
+
 		let clean = ``
 		let dirty =
 			`INSERT INTO ${this.relation} (` +
@@ -359,6 +376,7 @@ class Model {
 	 */
 	update(replace, where) {
 		this.verifyClient()
+		
 		let clean = ``
 		let dirty = `UPDATE ${this.relation} SET `
 		const whereClause = WhereClause.from(where)
@@ -517,7 +535,7 @@ const suggestions = spotlightWorks.join(justBooks, 'book_id')
  * @returns Promise
  */
 async function bookStatusList(client) {
-	if(!client) {
+	if (!client) {
 		throw new Error('No client provided to bookStatusList')
 	}
 

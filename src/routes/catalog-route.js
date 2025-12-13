@@ -4,42 +4,10 @@ const bookController = require('../controllers/book-control.js')
 const authorController = require('../controllers/author-control.js')
 const genreController = require('../controllers/genre-control.js')
 const bookinstanceController = require('../controllers/bookinstance-control.js')
-
-const { Client } = require('pg')
-const clientArgs = {
-	ssl:
-		process.env.NODE_ENV === 'production'
-			? {
-					rejectUnauthorized: false,
-			  }
-			: undefined,
-}
+const { perRequestClient } = require('../middleware/per-request-client.js')
 
 router
-	.use(async (req, res, next) => {
-		const client = new Client(clientArgs)
-
-		const release = async () => {
-			try {
-				log('👋 Request done, releasing client')
-				await client.end()
-			} catch (e) {
-				log('Error releasing client:', pink, e)
-			}
-		}
-
-		res.once('close', release)
-
-		try {
-			log('🫳 request received, starting client')
-			await client.connect()
-			req.client = client
-			return next()
-		} catch (e) {
-			await release()
-			return next(e)
-		}
-	})
+	.use(perRequestClient)
 	.get('/', bookController.index)
 	.get('/book/import', bookController.book_import_get) // AUDIT
 	.post('/book/json', bookController.book_json_post) // AUDIT
@@ -51,8 +19,8 @@ router
 	.get('/book/update', bookController.book_update_choose) // AUDIT
 	.get('/book/:id/update', bookController.book_update_get) // AUDIT
 	.post('/book/:id/update', bookController.book_update_post) // AUDIT
-	.get('/book/:id', bookController.book_detail)
-	.get('/books', bookController.book_list)
+	.get('/book/:id', bookController.book_detail) // AUDIT
+	.get('/books', bookController.book_list) // AUDIT
 
 	.get('/author/import', authorController.author_import_get) // AUDIT
 	.post('/author/json', authorController.author_json_post) // AUDIT
