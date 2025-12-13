@@ -14,6 +14,7 @@ const {
 	bookListQuery,
 	allBooksQuery,
 	trigramTitleQuery,
+	bookDetailQuery,
 } = require('../database.js')
 const {
 	paginate,
@@ -127,11 +128,7 @@ exports.book_list = [
 	},
 ]
 exports.book_detail = async (req, res) => {
-	const [resultBook, resultInstances, resultGenres] = await Promise.all([
-		books.find({ book_id: req.params.id }),
-		bookInstances.find({ book_id: req.params.id }),
-		genresByBook.find({ book_id: req.params.id }),
-	])
+	const [resultBook, resultInstances, resultGenres] = await makeQuery(bookDetailQuery, req.params.id)
 
 	if (!resultBook) {
 		return res.render(`no_results.hbs`)

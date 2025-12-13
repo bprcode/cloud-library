@@ -41,6 +41,49 @@ async function makeQuery(queryCallback, ...args) {
 	}
 }
 
+async function bookUpdateGetQuery(client, bookId) {
+	/*
+	SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE book_id::text ILIKE $1 ORDER BY index_title, last_name, first_name
+parameters: [ '91', [length]: 1 ]
+ values: 91
+  SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE book_id::text ILIKE $1 ORDER BY index_title, last_name, first_name
+parameters: [ '91', [length]: 1 ]
+SELECT * FROM lib.genres ORDER BY name
+SELECT * FROM lib.authors ORDER BY last_name, first_name
+ values: 91
+SELECT * FROM lib.book_genres JOIN lib.genres USING(genre_id) WHERE book_id::text ILIKE $1 ORDER BY name
+*/
+	const results = await Promise.all([
+		client.query(`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE book_id::text ILIKE $1 ORDER BY index_title, last_name, first_name`, bookId),
+		client.query(`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE book_id::text ILIKE $1 ORDER BY index_title, last_name, first_name`, bookId),
+		client.query(`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE book_id::text ILIKE $1 ORDER BY index_title, last_name, first_name`, bookId),
+		client.query(`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE book_id::text ILIKE $1 ORDER BY index_title, last_name, first_name`, bookId),
+		client.query(`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE book_id::text ILIKE $1 ORDER BY index_title, last_name, first_name`, bookId),
+	])
+}
+async function bookDetailQuery(client, bookId) {
+	const results = await Promise.all([
+		client.query(
+			`SELECT * FROM lib.books JOIN lib.authors ` +
+				`USING (author_id) WHERE book_id::text ILIKE $1 ` +
+				`ORDER BY index_title, last_name, first_name`,
+			[bookId]
+		),
+		client.query(
+			`SELECT * FROM lib.book_instance ` +
+				`WHERE book_id::text ILIKE $1 ORDER BY instance_id`,
+			[bookId]
+		),
+		client.query(
+			`SELECT * FROM lib.book_genres JOIN lib.genres USING(genre_id) ` +
+				`WHERE book_id::text ILIKE $1 ORDER BY name`,
+			[bookId]
+		),
+	])
+
+	return results.map((r) => r.rows)
+}
+
 async function trigramTitleQuery(client, fuzzy) {
 	await client.query(`SET pg_trgm.similarity_threshold = 0.1`)
 	const results = await client.query(
@@ -468,6 +511,7 @@ async function bookStatusList() {
 
 module.exports = {
 	makeQuery,
+	bookDetailQuery,
 	trigramTitleQuery,
 	catalogQuery,
 	bookListQuery,
