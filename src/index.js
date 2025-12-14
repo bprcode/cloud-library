@@ -10,8 +10,24 @@ const oldApp = express()
 const app = new Hono({ strict: false })
 
 app
+	// Parse incoming body streams
+// 	app.use(async (c, next) => {
+//   const type = c.req.header('content-type') || ''
+
+//   if (type.includes('application/json')) {
+// 		console.log("^^ parsing json")
+//     c.req.body = await c.req.json()
+//   } else if (type.includes('application/x-www-form-urlencoded')) {
+// 		console.log("^^ parsing urlencoded")
+//     c.req.body = await c.req.parseBody()
+//   }
+
+//   await next()
+// })
+
+	// Add a render method
 	.use((c, next) => {
-		c.render = (template, options) => {
+		c.render = (template, options, status = 200) => {
 			const templateName = template.split('.')[0]
 
 			if (!Handlebars) {
@@ -27,16 +43,18 @@ app
 
 			const html = Handlebars.templates[templateName](options)
 
-			return c.html(html)
+			return c.html(html, status)
 		}
 
 		return next()
 	})
+	// Add an error-tracking object (mimic express-validator's interface.)
 	.use((c, next) => {
 		c.trouble = new Trouble()
 
 		return next()
 	})
+	// Add a complete per-response query client lifecycle.
 	.use(async (c, next) => {
 		const connectionString =
 			process.env.NODE_ENV !== 'production'

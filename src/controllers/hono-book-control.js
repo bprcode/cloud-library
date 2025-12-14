@@ -38,6 +38,72 @@ const bookIdValidator = validator('param', async (value, c) => {
 	return { book_id }
 })
 
+const bookFormValidator = validator('form', async (value, c) => {
+	const { book_id } = c.req.valid('param')
+	if (!book_id) {
+		throw new Error('Book ID not populated.')
+	}
+
+	const validated = {}
+
+	const title = (value.title || '').trim()
+	if (!title) {
+		c.trouble.add('title', 'Title required')
+	} else {
+		const alreadyTaken = await books.find(c.client, { title })
+		if (alreadyTaken && book_id !== alreadyTaken[0].book_id) {
+			c.trouble.add('title', 'Title already in catalog.')
+		} else {
+			validated.title = title
+		}
+	}
+
+	const author_id = (value.author_id || '').trim()
+	if (!author_id) {
+		c.trouble.add('author_id', 'No author indicated.')
+	} else {
+		const author = await authors.find(c.client, { author_id })
+		if (!author) {
+			c.trouble.add('author_id', 'Invalid author.')
+		} else {
+			validated.author_id = author_id
+			validated.author = author
+		}
+	}
+
+	if (typeof value.isbn === 'string') {
+		validated.isbn = value.isbn.trim()
+	}
+
+	if (value.summary) {
+		validated.summary = value.summary
+	}
+
+	// Genres: extract from keys starting with 'genre'
+	const genreKeys = Object.keys(value).filter((k) => k.startsWith('genre'))
+	const genreList = genreKeys
+		.map((k) => {
+			const match = k.match(/genre-(\d+)/)
+			return match ? match[1] : null
+		})
+		.filter(Boolean)
+
+	const genreResults = await Promise.all(
+		genreList.map((g) => genres.find(c.client, { genre_id: g }))
+	)
+
+	genreResults.forEach((r, idx) => {
+		if (!r) {
+			c.trouble.add('genre', `Invalid genre ID: ${genreList[idx]}`)
+		}
+	})
+
+	// Attach parsed genre list
+	validated.genreList = genreList
+
+	return validated
+})
+
 export const bookController = {
 	async index(c) {
 		const result = await Promise.all([
@@ -151,6 +217,66 @@ export const bookController = {
 				populate: previous,
 				genreChecks: genreChecks,
 			})
+		},
+	],
+
+	book_update_post: [
+		bookIdValidator,
+		bookFormValidator,
+		async (c) => {
+			const [genreLabels, authorLabels] = await Promise.all([
+				genres.find(c.client),
+				authors.find(c.client),
+			])
+
+			const { title, isbn, author_id, summary, genreList } = c.req.valid('form')
+			const { book_id } = c.req.valid('param')
+			const item = { title, isbn, author_id, summary }
+			item.summary ??= null
+			item.isbn ??= null
+
+			if (!c.trouble.isEmpty()) {
+				if (c.trouble.array().find((e) => e.param === 'id')) {
+					return res.redirect(`/catalog/books`)
+				}
+
+				return c.render(
+					`book_form.hbs`,
+					{
+						trouble: c.trouble.array(),
+						genres: genreLabels,
+						authors: authorLabels,
+						title: 'Edit Book',
+						form_action: undefined,
+						submit: 'Save Changes',
+						populate: item,
+						genreChecks: genreList.map((g) => ({ genre_id: parseInt(g) })),
+					},
+					400
+				)
+			}
+
+			// Remove the old book_genres table entries
+			await bookGenres.delete(c.client, { book_id })
+			const [resultBook] = await justBooks.update(c.client, item, {
+				book_id,
+			})
+
+			// Also need to repeatedly insert on genre/book junction table
+			const bookID = resultBook.book_id
+			for (const genreID of genreList) {
+				try {
+					await bookGenres.insert(c.client, {
+						book_id,
+						genre_id: genreID,
+					})
+				} catch (e) {
+					log.err(e.message)
+					throw e
+				}
+			}
+
+			return c.redirect(resultBook.book_url)
 		},
 	],
 }
