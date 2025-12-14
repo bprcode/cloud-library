@@ -32,7 +32,7 @@ router
 	.get('/book/:id/update', bookController.book_update_get) // AUDIT
 	.post('/book/:id/update', bookController.book_update_post) // AUDIT
 	.get('/book/:id', bookController.book_detail) // AUDIT
-	.get('/books', bookController.book_list)
+	.get('/books', bookController.book_list) // AUDIT
 
 	.get('/author/import', authorController.author_import_get) // AUDIT
 	.post('/author/json', authorController.author_json_post) // AUDIT

@@ -3,6 +3,7 @@ import { honoCatalogRouter } from './routes/catalog-route-hono.js'
 const { Client } = require('pg')
 require('@bprcode/handy')
 import express from 'express'
+import { HTTPException } from 'hono/http-exception'
 const oldApp = express()
 
 const app = new Hono({ strict: false })
@@ -57,6 +58,16 @@ app
 	.route('/catalog', honoCatalogRouter)
 	.get('/env', (c) => {
 		return c.text(`Environment is: ${process.env.NODE_ENV}`)
+	})
+	.onError((err, c) => {
+		c.status(err instanceof HTTPException ? err.status : 500)
+
+		return c.render('error.hbs', {
+			title: 'Error Encountered',
+			status_code: c.res.status,
+			error_message: err.message,
+			error_stack:
+				process.env.NODE_ENV !== 'production' ? err.stack : undefined})
 	})
 
 //
