@@ -17,7 +17,9 @@ const {
 } = require('./paginator.js')
 const { noteTrouble } = require('../validation.js')
 
+
 export const honoBookController = {
+
 	async index(c) {
 		const result = await Promise.all([
 			books.count(c.client),
