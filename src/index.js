@@ -1,8 +1,58 @@
+import { Hono } from 'hono'
+import { honoCatalogRouter } from './routes/catalog-route-hono.js'
+const { Client } = require('pg')
 require('@bprcode/handy')
-import { httpServerHandler } from 'cloudflare:node'
+// import { httpServerHandler } from 'cloudflare:node'
 import express from 'express'
-const app = express()
+const oldApp = express()
 
+const app = new Hono()
+
+app
+	.use(async (c, next) => {
+		const connectionString =
+			process.env.NODE_ENV !== 'production'
+				? process.env.CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE
+				: c.env.HYPERDRIVE?.connectionString
+
+		const client = new Client({ connectionString })
+		await client.connect()
+		c.req.client = client
+
+		try {
+			log('Client connected.', yellow)
+
+			await next()
+		} finally {
+			c.executionCtx.waitUntil(
+				(async () => {
+					log('Releasing client...', yellow)
+					await client.end()
+					log('Client released.', yellow)
+				})()
+			)
+		}
+	})
+	.route('/catalog', honoCatalogRouter)
+	.get('/env', (c) => {
+		console.log('serving request for /env')
+		return c.text(`Environment is: ${process.env.NODE_ENV}`)
+	})
+	.get('/db', async (c) => {
+		try {
+			const results = await c.req.client.query(
+				`SELECT title FROM lib.books LIMIT 10`
+			)
+
+			console.log('serving request for /db')
+			return c.json(results.rows)
+		} catch (e) {
+			console.error('Caught database error', e)
+			return c.text(e.message, { status: 500 })
+		}
+	})
+
+//
 const helmet = require('helmet')
 
 // Initialize templating
@@ -10,7 +60,7 @@ const { DateTime } = require('luxon')
 
 // Precompilation templating
 const Handlebars = require('handlebars/runtime')
-global.Handlebars = Handlebars;
+global.Handlebars = Handlebars
 
 require('../built/partials')
 require('../built/shared-partials')
@@ -55,7 +105,7 @@ Handlebars.registerHelper('error-check', (trouble, name) => {
 const catalogRouter = require('./routes/catalog-route.js')
 const resetRouter = require('./routes/reset-route.js')
 
-app
+oldApp
 	.use(helmet({ contentSecurityPolicy: false }))
 	.disable('x-powered-by')
 
@@ -74,10 +124,10 @@ app
 		res.render = (template, options) => {
 			const templateName = template.split('.')[0]
 
-			if(!Handlebars) {
+			if (!Handlebars) {
 				throw new Error('Handlebars not defined.')
 			}
-			if(!Handlebars.templates) {
+			if (!Handlebars.templates) {
 				throw new Error('Handlebars.templates not defined.')
 			}
 
@@ -115,12 +165,13 @@ app
 		})
 	})
 
-const server = app.listen(3000, () => {
-	if (process.env.NODE_ENV === 'production')
-		log('App running in production mode.', blue)
-	else log('App running in development mode.', yellow)
+// const server = oldApp.listen(3000, () => {
+// 	if (process.env.NODE_ENV === 'production')
+// 		log('App running in production mode.', blue)
+// 	else log('App running in development mode.', yellow)
 
-	log(moo() + ' Server active on: ', green, server.address())
-})
+// 	log(moo() + ' Server active on: ', green, server.address())
+// })
 
-export default httpServerHandler({ port: 3000 })
+// export default httpServerHandler({ port: 3000 })
+export default app

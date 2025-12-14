@@ -11,6 +11,12 @@
 	"observability": {
 		"enabled": true
 	},
+	"hyperdrive": [
+		{
+			"binding": "HYPERDRIVE",
+			"id": "033bf57cb11b4acaa1d3d78d09e49ea6",
+		}
+	],
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

@@ -16,6 +16,7 @@ const {
 	sanitizePagination,
 	includePagination,
 } = require('./paginator.js')
+const { noteTrouble } = require('../validation.js')
 const axios = require('axios')
 const Fuse = require('fuse.js')
 
@@ -71,7 +72,7 @@ const bookValidators = [
 
 const bookIdValidator = async(req, res, next) => {
 	if(!req.params.id || !(await books.find(req, {book_id: req.params.id}))) {
-		req.trouble = 'Book ID not found.'
+		noteTrouble(req, {param: 'id', msg: 'Book ID not found.'})
 	}
 	
 	return next()

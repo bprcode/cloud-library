@@ -7,14 +7,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 const http = require('http')
 
-const clientArgs = {
-	ssl:
-		process.env.NODE_ENV === 'production'
-			? {
-					rejectUnauthorized: false,
-			  }
-			: undefined,
-}
+const clientArgs = { connectionString: 'PLACEHOLDER'}
 
 // Drop-in replacement for pg-format,
 // which is unsupported on Cloudflare Workers.
@@ -312,7 +305,7 @@ class Model {
 	}
 
 	verifyReq(req) {
-		if(!req || !(req instanceof http.IncomingMessage) || !req.client) {
+		if (!req || !(req instanceof http.IncomingMessage) || !req.client) {
 			log('Request invalid or client missing', pink)
 			throw new Error('Invalid request client')
 		}
@@ -413,9 +406,7 @@ class Model {
 	 * @returns promise for query
 	 */
 	find(req, ...etc) {
-		console.log('#VERIFY 1')
 		this.verifyReq(req)
-		console.log('#VERIFY 2')
 
 		let clean = ``
 		let dirty = `SELECT * FROM ${this.relation}`
