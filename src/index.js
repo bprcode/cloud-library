@@ -34,7 +34,7 @@ app
 	})
 	.use((c, next) => {
 		c.trouble = new Trouble()
-		
+
 		return next()
 	})
 	.use(async (c, next) => {
@@ -61,6 +61,9 @@ app
 			)
 		}
 	})
+	.get('/', (c) => {
+		return c.redirect('/catalog')
+	})
 	.route('/catalog', honoCatalogRouter)
 	.get('/env', (c) => {
 		return c.text(`Environment is: ${process.env.NODE_ENV}`)
@@ -73,7 +76,8 @@ app
 			status_code: c.res.status,
 			error_message: err.message,
 			error_stack:
-				process.env.NODE_ENV !== 'production' ? err.stack : undefined})
+				process.env.NODE_ENV !== 'production' ? err.stack : undefined,
+		})
 	})
 
 //
