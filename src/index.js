@@ -39,7 +39,7 @@ app
 
 		const client = new Client({ connectionString })
 		await client.connect()
-		c.req.client = client
+		c.client = client
 
 		try {
 			log('Client connected.', yellow)

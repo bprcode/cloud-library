@@ -20,10 +20,10 @@ const { noteTrouble } = require('../validation.js')
 export const honoBookController = {
 	async index(c) {
 		const result = await Promise.all([
-			books.count(c.req),
-			authors.count(c.req),
-			genres.count(c.req),
-			suggestions.find(c.req, 'cover_id', 'title', 'snippet', 'book_url'),
+			books.count(c.client),
+			authors.count(c.client),
+			genres.count(c.client),
+			suggestions.find(c.client, 'cover_id', 'title', 'snippet', 'book_url'),
 		])
 
 		return c.render('catalog_active_home.hbs', {
