@@ -4,24 +4,8 @@ const bookController = require('../controllers/book-control.js')
 const authorController = require('../controllers/author-control.js')
 const genreController = require('../controllers/genre-control.js')
 const bookinstanceController = require('../controllers/bookinstance-control.js')
-const { perRequestClient } = require('../middleware/per-request-client.js')
-
-const testMiddleware = async (req, res, next) => {
-  new Promise(ok => {
-    console.log('promise 1')
-    setTimeout(() => {
-      console.log('promise 2')
-      ok()
-    }, 2000)
-  }).then(() => console.log('after promise'))
-
-  next()
-}
-
 
 router
-	.use(testMiddleware)
-	.use(perRequestClient)
 	.get('/', bookController.index)
 	.get('/book/import', bookController.book_import_get) // AUDIT
 	.post('/book/json', bookController.book_json_post) // AUDIT

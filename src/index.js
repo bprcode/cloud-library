@@ -4,6 +4,7 @@ const { Client } = require('pg')
 require('@bprcode/handy')
 import express from 'express'
 import { HTTPException } from 'hono/http-exception'
+import { Trouble } from './validation/Trouble.js'
 const oldApp = express()
 
 const app = new Hono({ strict: false })
@@ -29,6 +30,11 @@ app
 			return c.html(html)
 		}
 
+		return next()
+	})
+	.use((c, next) => {
+		c.trouble = new Trouble()
+		
 		return next()
 	})
 	.use(async (c, next) => {

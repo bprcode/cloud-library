@@ -15,7 +15,6 @@ const {
 	sanitizePagination,
 	includePagination,
 } = require('./paginator.js')
-const { noteTrouble } = require('../validation.js')
 
 
 export const honoBookController = {

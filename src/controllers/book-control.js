@@ -16,7 +16,6 @@ const {
 	sanitizePagination,
 	includePagination,
 } = require('./paginator.js')
-const { noteTrouble } = require('../validation.js')
 const axios = require('axios')
 const Fuse = require('fuse.js')
 
