@@ -11,6 +11,7 @@ export class Trouble {
   }
 
   add(param, msg) {
+    console.log('### noting trouble',param,msg)
     this.issues.push({param, msg})
   }
 }

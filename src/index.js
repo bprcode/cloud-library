@@ -54,7 +54,6 @@ app
 		} finally {
 			c.executionCtx.waitUntil(
 				(async () => {
-					log('Releasing client...', yellow)
 					await client.end()
 					log('Client released.', yellow)
 				})()

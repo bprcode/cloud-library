@@ -416,7 +416,7 @@ class Model {
 		if (etc.length === 0) {
 			dirty += this.orderClause
 			dbLog(dirty, yellow)
-			return clientQuery(client.client, dirty) // Nothing to sanitize
+			return clientQuery(client, dirty) // Nothing to sanitize
 		}
 		// Otherwise...
 		if (typeof etc.at(-1) === 'object') {
