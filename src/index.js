@@ -2,13 +2,34 @@ import { Hono } from 'hono'
 import { honoCatalogRouter } from './routes/catalog-route-hono.js'
 const { Client } = require('pg')
 require('@bprcode/handy')
-// import { httpServerHandler } from 'cloudflare:node'
 import express from 'express'
 const oldApp = express()
 
-const app = new Hono()
+const app = new Hono({ strict: false })
 
 app
+	.use((c, next) => {
+		c.render = (template, options) => {
+			const templateName = template.split('.')[0]
+
+			if (!Handlebars) {
+				throw new Error('Handlebars not defined.')
+			}
+			if (!Handlebars.templates) {
+				throw new Error('Handlebars.templates not defined.')
+			}
+
+			if (!(templateName in Handlebars.templates)) {
+				throw new Error(`${template} not found in templates`)
+			}
+
+			const html = Handlebars.templates[templateName](options)
+
+			return c.html(html)
+		}
+
+		return next()
+	})
 	.use(async (c, next) => {
 		const connectionString =
 			process.env.NODE_ENV !== 'production'
@@ -35,21 +56,7 @@ app
 	})
 	.route('/catalog', honoCatalogRouter)
 	.get('/env', (c) => {
-		console.log('serving request for /env')
 		return c.text(`Environment is: ${process.env.NODE_ENV}`)
-	})
-	.get('/db', async (c) => {
-		try {
-			const results = await c.req.client.query(
-				`SELECT title FROM lib.books LIMIT 10`
-			)
-
-			console.log('serving request for /db')
-			return c.json(results.rows)
-		} catch (e) {
-			console.error('Caught database error', e)
-			return c.text(e.message, { status: 500 })
-		}
 	})
 
 //

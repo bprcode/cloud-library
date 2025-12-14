@@ -305,7 +305,7 @@ class Model {
 	}
 
 	verifyReq(req) {
-		if (!req || !(req instanceof http.IncomingMessage) || !req.client) {
+		if (!req?.client) {
 			log('Request invalid or client missing', pink)
 			throw new Error('Invalid request client')
 		}
