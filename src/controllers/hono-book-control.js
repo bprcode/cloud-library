@@ -128,12 +128,12 @@ export const bookController = {
 			const { page, limit } = c.req.valid('query')
 			const search = c.req.query('q') || null
 
-      log('❔ using search conditions:', page, limit, search)
-      
+			log('❔ using search conditions:', page, limit, search)
+
 			if (search) {
-        log('❔ making trigram search')
+				log('❔ making trigram search')
 				const matches = await trigramTitleQuery(c.client, search)
-        log('❔ got trigram results', matches)
+				log('❔ got trigram results', matches)
 
 				return c.render('book_list.hbs', {
 					books: matches,
@@ -204,12 +204,11 @@ export const bookController = {
 			}
 			const { book_id, book } = c.req.valid('param')
 
-			const [ genreList, authorList, genreChecks] =
-				await Promise.all([
-					genres.find(c.client),
-					authors.find(c.client),
-					genresByBook.find(c.client, { book_id }),
-				])
+			const [genreList, authorList, genreChecks] = await Promise.all([
+				genres.find(c.client),
+				authors.find(c.client),
+				genresByBook.find(c.client, { book_id }),
+			])
 
 			return c.render(`book_form.hbs`, {
 				genres: genreList,
@@ -265,21 +264,48 @@ export const bookController = {
 				book_id,
 			})
 
-			// Also need to repeatedly insert on genre/book junction table
-			const bookID = resultBook.book_id
-			for (const genreID of genreList) {
-				try {
-					await bookGenres.insert(c.client, {
-						book_id,
-						genre_id: genreID,
-					})
-				} catch (e) {
-					log.err(e.message)
-					throw e
-				}
+			// N.B. If this were a common route, it would be worth optimizing
+			// to insert all values in a single query:
+			try {
+				await Promise.all(
+					genreList.map((genre_id) =>
+						bookGenres.insert(c.client, { book_id, genre_id })
+					)
+				)
+			} catch (e) {
+				log.err(e.message)
+				throw e
 			}
 
 			return c.redirect(resultBook.book_url)
 		},
 	],
 }
+
+const example = {}
+example.book_delete_get = [
+	bookIdValidator,
+	async (req, res) => {
+		const trouble = validationResult(req)
+		if (!trouble.isEmpty()) {
+			log('got trouble>>', yellow)
+			log(trouble.array())
+			return res.redirect(`/catalog/book/delete`)
+		}
+		const [resultBook, resultInstances] = await Promise.all([
+			books.find({ book_id: req.params.id }),
+			bookInstances.find({ book_id: req.params.id }),
+		])
+		res.render(`book_delete.hbs`, {
+			book: resultBook[0],
+			instances: resultInstances,
+		})
+	},
+]
+example.book_delete_post = [
+	bookIdValidator,
+	async (req, res) => {
+		justBooks.delete({ book_id: req.params.id })
+		res.redirect(`/catalog/books`)
+	},
+]
