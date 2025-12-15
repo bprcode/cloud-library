@@ -29,7 +29,7 @@ router
 	.get('/author/:id/update', authorController.author_update_get) // AUDIT
 	.post('/author/:id/update', authorController.author_update_post) // AUDIT
 	.get('/author/:id', authorController.author_detail) // AUDIT
-	.get('/authors', authorController.author_list) // AUDIT
+	.get('/authors', authorController.author_list)
 
 	.post('/genre/associate/json', genreController.associate_json_post) // AUDIT
 	.get('/genre/json', genreController.genre_json_get)
