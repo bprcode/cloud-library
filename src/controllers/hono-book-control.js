@@ -39,10 +39,13 @@ const bookIdValidator = validator('param', async (value, c) => {
 	return { book_id }
 })
 
-const bookFormValidator = validator('form', async (value, c) => {
+async function bookBodyValidation(value, c) {
+	const validated = {}
 	const { book_id } = c.req.valid('param') ?? -1
 
-	const validated = {}
+	if (value.work_key) {
+		validated.work_key = value.work_key
+	}
 
 	const title = (value.title || '').trim()
 	if (!title) {
@@ -100,6 +103,12 @@ const bookFormValidator = validator('form', async (value, c) => {
 	validated.genreList = genreList
 
 	return validated
+}
+const bookFormValidator = validator('form', async (value, c) => {
+	return await bookBodyValidation(value, c)
+})
+const bookJsonValidator = validator('json', async (value, c) => {
+	return await bookBodyValidation(value, c)
 })
 
 export const bookController = {
@@ -388,7 +397,63 @@ export const bookController = {
 	async book_import_get(c) {
 		return c.render(`import_book.hbs`, { title: 'Import book' })
 	},
+
+	book_json_post: [
+		bookJsonValidator,
+		async (c) => {
+			if (!c.trouble.isEmpty()) {
+				return c.json({ trouble: c.trouble.array() }, { status: 400 })
+			}
+
+			const item = {
+				title: c.req.valid('json').title,
+				isbn: c.req.valid('json').isbn || null,
+				author_id: c.req.valid('json').author_id,
+				summary: c.req.valid('json').summary || null,
+			}
+
+			// Having passed validation, create the new book.
+			const result = await justBooks.insert(c.client, item)
+
+			// Consider including the book in the recently-added list:
+			c.executionCtx.waitUntil(
+				suggestRecent(
+					c.connectionString,
+					c.req.valid('json').work_key,
+					result[0].book_id
+				)
+			)
+
+			return c.json(result[0], { status: 201 })
+		},
+	],
 }
+
+const book_json_post = [
+	// preventTitleCollision,
+	// ...bookValidators,
+	async (req, res) => {
+		const trouble = validationResult(req)
+		if (!trouble.isEmpty()) {
+			return res.status(400).send({ trouble: trouble.array() })
+		}
+
+		const item = {
+			title: req.body.title,
+			isbn: req.body.isbn || null,
+			author_id: req.body.author_id,
+			summary: req.body.summary || null,
+		}
+
+		// Having passed validation, create the new book.
+		const result = await justBooks.insert(item)
+
+		// Consider including the book in the recently-added list:
+		suggestRecent(req.body.work_key, result[0].book_id)
+
+		res.status(201).send(result[0])
+	},
+]
 
 async function suggestBook(connectionString, title, author, book_id) {
 	const client = new Client({ connectionString })
@@ -434,7 +499,7 @@ async function suggestBook(connectionString, title, author, book_id) {
 			log(`🔍 Checking covers for ${title}...`)
 			const firstCover = workData.covers?.[0]
 
-			if (firstCover) {
+			if (firstCover > 0) {
 				log('🔍 Work accepted. Adding to spotlight queue...', green)
 				await spotlightWorks.insert(client, {
 					cover_id: firstCover,
@@ -447,5 +512,53 @@ async function suggestBook(connectionString, title, author, book_id) {
 	} finally {
 		await client.end()
 		log('👋🔍 suggestion client released.')
+	}
+}
+
+async function suggestRecent(connectionString, workKey, book_id) {
+	const minDescriptionLength = 200
+	if (typeof workKey !== 'string') return
+
+	try {
+		const client = new Client({ connectionString })
+		await client.connect()
+		log('👆🔍 recent suggestion client acquired.')
+
+		const url = `https://openlibrary.org${workKey}.json`
+		log('Considering ', url)
+
+		const response = await fetch(url)
+
+		if (!response.ok) {
+			throw new Error(`HTTP error, ${response.status}`)
+		}
+
+		const data = await response.json()
+
+		if (!Array.isArray(data.covers)) {
+			log(`Rejecting suggestion (no covers available for ${workKey})`, 'pink')
+			return
+		}
+
+		const firstCover = data.covers[0]
+		const parsed = parseDescription(data.description)
+
+		if (firstCover > 0 && parsed.length > minDescriptionLength) {
+			log('Suggested work looks good.', 'pink')
+			await spotlightWorks.insert({ cover_id: firstCover, book_id: book_id })
+		} else {
+			log("This text doesn't look like a good candidate.", 'yellow')
+		}
+	} catch (e) {
+		log.err(e.message)
+	} finally {
+		await client.end()
+		log('👋🔍 recent suggestion client released.')
+	}
+
+	function parseDescription(description) {
+		if (!description) return 'No description available.'
+		if (typeof description === 'string') return description
+		return description.value || 'Unrecognized format.'
 	}
 }
