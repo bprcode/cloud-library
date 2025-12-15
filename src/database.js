@@ -279,8 +279,6 @@ class WhereClause {
 // Note: Constructor values are an injection risk
 // and should not be based on user input.
 class Model {
-	req = null
-
 	constructor(properties) {
 		Object.assign(this, {
 			schema: undefined,

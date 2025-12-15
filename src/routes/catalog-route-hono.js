@@ -11,6 +11,8 @@ export const honoCatalogRouter = new Hono()
 
 honoCatalogRouter
 	.get('/', bookController.index)
+	.get('/book/:id/delete', ...bookController.book_delete_get)
+	.post('/book/:id/delete', ...bookController.book_delete_post)
   .get('/book/:id/update', ...bookController.book_update_get)
   .post('/book/:id/update', ...bookController.book_update_post)
 	.get('/book/:id', bookController.book_detail)

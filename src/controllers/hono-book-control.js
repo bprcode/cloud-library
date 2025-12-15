@@ -128,12 +128,8 @@ export const bookController = {
 			const { page, limit } = c.req.valid('query')
 			const search = c.req.query('q') || null
 
-			log('❔ using search conditions:', page, limit, search)
-
 			if (search) {
-				log('❔ making trigram search')
 				const matches = await trigramTitleQuery(c.client, search)
-				log('❔ got trigram results', matches)
 
 				return c.render('book_list.hbs', {
 					books: matches,
@@ -280,32 +276,36 @@ export const bookController = {
 			return c.redirect(resultBook.book_url)
 		},
 	],
-}
 
-const example = {}
-example.book_delete_get = [
-	bookIdValidator,
-	async (req, res) => {
-		const trouble = validationResult(req)
-		if (!trouble.isEmpty()) {
-			log('got trouble>>', yellow)
-			log(trouble.array())
-			return res.redirect(`/catalog/book/delete`)
-		}
-		const [resultBook, resultInstances] = await Promise.all([
-			books.find({ book_id: req.params.id }),
-			bookInstances.find({ book_id: req.params.id }),
-		])
-		res.render(`book_delete.hbs`, {
-			book: resultBook[0],
-			instances: resultInstances,
-		})
-	},
-]
-example.book_delete_post = [
-	bookIdValidator,
-	async (req, res) => {
-		justBooks.delete({ book_id: req.params.id })
-		res.redirect(`/catalog/books`)
-	},
-]
+	book_delete_get: [
+		bookIdValidator,
+		async (c) => {
+			const { book_id, book } = c.req.valid('param')
+
+			if (!c.trouble.isEmpty()) {
+				return c.redirect(`/catalog/book/delete`)
+			}
+
+			const instances = await bookInstances.find(c.client, { book_id })
+
+			return c.render(`book_delete.hbs`, {
+				book,
+				instances,
+			})
+		},
+	],
+
+	book_delete_post: [
+		bookIdValidator,
+		async (c) => {
+			const { book_id } = c.req.valid('param')
+
+			if (!c.trouble.isEmpty()) {
+				return c.redirect(`/catalog/book/delete`)
+			}
+
+			await justBooks.delete(c.client, { book_id })
+			return c.redirect(`/catalog/books`)
+		},
+	],
+}
