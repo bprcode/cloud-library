@@ -14,7 +14,7 @@ router
 	.get('/book/:id/delete', bookController.book_delete_get) // AUDIT
 	.post('/book/:id/delete', bookController.book_delete_post) // AUDIT
 	.get('/book/:id/update', bookController.book_update_get)
-	.post('/book/:id/update', bookController.book_update_post) // AUDIT
+	.post('/book/:id/update', bookController.book_update_post)
 	.get('/book/:id', bookController.book_detail)
 	.get('/books', bookController.book_list)
 
