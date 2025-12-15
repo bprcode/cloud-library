@@ -7,8 +7,6 @@ if (process.env.NODE_ENV === 'production') {
 }
 const http = require('http')
 
-const clientArgs = { connectionString: 'PLACEHOLDER'}
-
 // Drop-in replacement for pg-format,
 // which is unsupported on Cloudflare Workers.
 // Does not perform sanitization; must not be used for client input.
@@ -18,21 +16,6 @@ function format(query, ...args) {
 	}
 
 	return query
-}
-
-// Optimized composite queries for Cloudflare Workers constraints:
-async function makeQuery(queryCallback, ...args) {
-	const client = new Client(clientArgs)
-
-	try {
-		await client.connect()
-		return await queryCallback(client, ...args)
-	} catch (e) {
-		dbLog('Client query fetch error:', pink, e)
-		throw e
-	} finally {
-		await client.end()
-	}
 }
 
 async function bookUpdateGetQuery(client, bookId) {
@@ -94,7 +77,8 @@ async function bookDetailQuery(client, bookId) {
 }
 
 async function trigramTitleQuery(client, fuzzy) {
-	await client.query(`SET pg_trgm.similarity_threshold = 0.1`)
+	await client.query('BEGIN')
+	await client.query(`SET LOCAL pg_trgm.similarity_threshold = 0.1`)
 	const results = await client.query(
 		`
 			SELECT 
@@ -117,7 +101,8 @@ async function trigramTitleQuery(client, fuzzy) {
 		`,
 		[fuzzy]
 	)
-
+	await client.query('COMMIT')
+	
 	return results.rows
 }
 
@@ -543,7 +528,6 @@ async function bookStatusList(client) {
 }
 
 module.exports = {
-	makeQuery,
 	bookDetailQuery,
 	trigramTitleQuery,
 	catalogQuery,

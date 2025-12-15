@@ -10,21 +10,6 @@ const oldApp = express()
 const app = new Hono({ strict: false })
 
 app
-	// Parse incoming body streams
-// 	app.use(async (c, next) => {
-//   const type = c.req.header('content-type') || ''
-
-//   if (type.includes('application/json')) {
-// 		console.log("^^ parsing json")
-//     c.req.body = await c.req.json()
-//   } else if (type.includes('application/x-www-form-urlencoded')) {
-// 		console.log("^^ parsing urlencoded")
-//     c.req.body = await c.req.parseBody()
-//   }
-
-//   await next()
-// })
-
 	// Add a render method
 	.use((c, next) => {
 		c.render = (template, options, status = 200) => {
@@ -66,14 +51,11 @@ app
 		c.client = client
 
 		try {
-			log('Client connected.', yellow)
-
 			await next()
 		} finally {
 			c.executionCtx.waitUntil(
 				(async () => {
 					await client.end()
-					log('Client released.', yellow)
 				})()
 			)
 		}

@@ -128,8 +128,12 @@ export const bookController = {
 			const { page, limit } = c.req.valid('query')
 			const search = c.req.query('q') || null
 
+      log('❔ using search conditions:', page, limit, search)
+      
 			if (search) {
+        log('❔ making trigram search')
 				const matches = await trigramTitleQuery(c.client, search)
+        log('❔ got trigram results', matches)
 
 				return c.render('book_list.hbs', {
 					books: matches,
