@@ -384,6 +384,10 @@ export const bookController = {
 			return c.redirect(result[0].book_url)
 		},
 	],
+
+	async book_import_get(c) {
+		return c.render(`import_book.hbs`, { title: 'Import book' })
+	},
 }
 
 async function suggestBook(connectionString, title, author, book_id) {
