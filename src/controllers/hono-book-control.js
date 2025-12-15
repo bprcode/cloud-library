@@ -10,11 +10,7 @@ const {
 	suggestions,
 	trigramTitleQuery,
 } = require('../database.js')
-const {
-	paginate,
-	sanitizePagination,
-	includePagination,
-} = require('./paginator.js')
+const { paginate } = require('./paginator.js')
 import { Client } from 'pg'
 import { withPagination } from '../validation/hono-pagination'
 import { validator } from 'hono/validator'
@@ -143,7 +139,7 @@ export const bookController = {
 					noResults: !Boolean(matches.length),
 					total: matches.length,
 					allResults: true,
-					populate: { search: search },
+					populate: { search },
 				})
 			}
 

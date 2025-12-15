@@ -76,6 +76,31 @@ async function bookDetailQuery(client, bookId) {
 	return results.map((r) => r.rows)
 }
 
+async function trigramAuthorQuery(client, fuzzy) {
+	await client.query('BEGIN')
+	await client.query(`SET LOCAL pg_trgm.similarity_threshold = 0.1`)
+	const results = await client.query(
+		`
+			SELECT full_name, dob, dod, author_url, blurb,
+				(CASE
+					WHEN full_name ~* ('\\m' || $1 ) THEN 10
+					WHEN full_name ILIKE '%' || $1 || '%' THEN 5
+					ELSE 0
+				END)
+					+ word_similarity(full_name, $1) 
+					AS score
+					FROM lib.authors
+					WHERE full_name % $1
+					ORDER BY score DESC
+					LIMIT 20
+		`,
+		[fuzzy]
+	)
+	await client.query('COMMIT')
+	
+	return results.rows
+	
+}
 async function trigramTitleQuery(client, fuzzy) {
 	await client.query('BEGIN')
 	await client.query(`SET LOCAL pg_trgm.similarity_threshold = 0.1`)
@@ -528,6 +553,7 @@ async function bookStatusList(client) {
 module.exports = {
 	bookDetailQuery,
 	trigramTitleQuery,
+	trigramAuthorQuery,
 	catalogQuery,
 	bookListQuery,
 	allBooksQuery,
