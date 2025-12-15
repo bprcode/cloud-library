@@ -1,11 +1,9 @@
-const authorController = require('../controllers/author-control.js')
-const bookinstanceController = require('../controllers/bookinstance-control.js')
-
-import { validator } from 'hono/validator'
 import { bookController } from '../controllers/hono-book-control'
 import { genreController } from '../controllers/hono-genre-control'
-
+import { authorController} from '../controllers/hono-author-control'
+import { bookinstanceController} from '../controllers/hono-bookinstance-control'
 import { Hono } from 'hono'
+
 export const honoCatalogRouter = new Hono()
 
 honoCatalogRouter
