@@ -1,7 +1,32 @@
 import { validator } from 'hono/validator'
 import { withPagination } from '../validation/hono-pagination'
 const { paginate } = require('./paginator.js')
-const { authors, snipTimes, trigramAuthorQuery } = require('../database.js')
+const {
+	authors,
+	books,
+	snipTimes,
+	trigramAuthorQuery,
+} = require('../database.js')
+
+const authorIdValidator = validator('param', async (value, c) => {
+	const author_id = value.id
+
+	if (!author_id) {
+		throw new Error('Missing author ID')
+	}
+
+	const [author] = await snipTimes(authors.find(c.client, { author_id }))
+
+	if (author) {
+		return {
+			author_id,
+			author,
+		}
+	}
+
+	c.trouble.add('id', 'No book matched ID.')
+	return { author_id }
+})
 
 async function authorBodyValidation(value, c) {
 	const validated = {}
@@ -57,6 +82,48 @@ export const authorController = {
 				authors: authorList,
 				noResults: !authorList,
 				...position,
+			})
+		},
+	],
+
+	async author_detail(c) {
+		const author_id = c.req.param('id')
+
+		const [resultAuthors, resultBooks] = await Promise.all([
+			snipTimes(authors.find(c.client, { author_id })),
+			books.find(c.client, { author_id }),
+		])
+
+		if (!resultAuthors) {
+			return c.render(`no_results.hbs`)
+		}
+
+		// Split text for paragraph tags:
+		if (resultAuthors[0].bio) {
+			resultAuthors[0].bio = resultAuthors[0].bio.split(/\n+/)
+		}
+
+		return c.render(`author_detail.hbs`, {
+			author: resultAuthors[0],
+			books: resultBooks,
+			title: resultAuthors[0].full_name,
+		})
+	},
+
+	author_update_get: [
+		authorIdValidator,
+		async (c) => {
+			if (!c.trouble.isEmpty()) {
+				return c.redirect(`/catalog/author/update`)
+			}
+
+			const { author } = c.req.valid('param')
+
+			return c.render(`author_form.hbs`, {
+				author,
+				title: 'Edit Author',
+				form_action: undefined,
+				submit: 'Save Changes',
 			})
 		},
 	],

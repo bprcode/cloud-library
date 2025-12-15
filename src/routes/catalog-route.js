@@ -26,9 +26,9 @@ router
 	.get('/author/:id/delete', authorController.author_delete_get) // AUDIT
 	.post('/author/:id/delete', authorController.author_delete_post) // AUDIT
 	.get('/author/update', authorController.author_update_choose) // AUDIT
-	.get('/author/:id/update', authorController.author_update_get) // AUDIT
+	.get('/author/:id/update', authorController.author_update_get)
 	.post('/author/:id/update', authorController.author_update_post) // AUDIT
-	.get('/author/:id', authorController.author_detail) // AUDIT
+	.get('/author/:id', authorController.author_detail)
 	.get('/authors', authorController.author_list)
 
 	.post('/genre/associate/json', genreController.associate_json_post) // AUDIT
