@@ -289,8 +289,8 @@ class Model {
 
 	verifyClient(client) {
 		if (!client || !(client instanceof Client)) {
-			log('Missing valid query client', pink)
-			throw new Error('Invalid query client')
+			log('Missing valid query client for ', pink, this.table)
+			throw new Error(`Invalid query client for table ${this.table}`)
 		}
 	}
 

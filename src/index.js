@@ -41,12 +41,12 @@ app
 	})
 	// Add a complete per-response query client lifecycle.
 	.use(async (c, next) => {
-		const connectionString =
+		c.connectionString =
 			process.env.NODE_ENV !== 'production'
 				? process.env.CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE
 				: c.env.HYPERDRIVE?.connectionString
 
-		const client = new Client({ connectionString })
+		const client = new Client({ connectionString: c.connectionString })
 		await client.connect()
 		c.client = client
 

@@ -15,6 +15,7 @@ const {
 	sanitizePagination,
 	includePagination,
 } = require('./paginator.js')
+import { Client } from 'pg'
 import { withPagination } from '../validation/hono-pagination'
 import { validator } from 'hono/validator'
 
@@ -39,10 +40,7 @@ const bookIdValidator = validator('param', async (value, c) => {
 })
 
 const bookFormValidator = validator('form', async (value, c) => {
-	const { book_id } = c.req.valid('param')
-	if (!book_id) {
-		throw new Error('Book ID not populated.')
-	}
+	const { book_id } = c.req.valid('param') ?? -1
 
 	const validated = {}
 
@@ -308,4 +306,142 @@ export const bookController = {
 			return c.redirect(`/catalog/books`)
 		},
 	],
+
+	async book_create_get(c) {
+		const [genreLabels, authorLabels] = await Promise.all([
+			genres.find(c.client),
+			authors.find(c.client),
+		])
+
+		return c.render(`book_form.hbs`, {
+			genres: genreLabels,
+			authors: authorLabels,
+			title: 'Add Book',
+			form_action: '/catalog/book/create',
+			submit: 'Create',
+		})
+	},
+
+	book_create_post: [
+		bookFormValidator,
+		async (c) => {
+			const { title, isbn, author_id, summary, genreList } = c.req.valid('form')
+			const item = { title, isbn, author_id, summary }
+			item.summary ??= null
+			item.isbn ??= null
+
+			if (!c.trouble.isEmpty()) {
+				const [genreLabels, authorLabels] = await Promise.all([
+					genres.find(c.client),
+					authors.find(c.client),
+				])
+
+				return c.render(
+					`book_form.hbs`,
+					{
+						trouble: c.trouble.array(),
+						genres: genreLabels,
+						authors: authorLabels,
+						title: 'Add Book',
+						form_action: '/catalog/book/create',
+						submit: 'Create',
+						populate: item,
+						genreChecks: genreList.map((g) => ({ genre_id: parseInt(g) })),
+					},
+					400
+				)
+			}
+
+			// Having passed validation, create the new book.
+			const result = await justBooks.insert(c.client, item)
+
+			// Start a lookup on OpenLibrary,
+			// add this book to the recent works spotlight if it looks good.
+			c.executionCtx.waitUntil(
+				suggestBook(
+					c.connectionString,
+					result[0].title,
+					(
+						await authors.find(c.client, 'full_name', {
+							author_id: result[0].author_id,
+						})
+					)[0].full_name,
+					result[0].book_id
+				)
+			)
+
+			// Also need to repeatedly insert on genre/book junction table
+			const book_id = result[0].book_id
+			await Promise.all(
+				genreList.map((genre_id) =>
+					bookGenres.insert(c.client, { book_id, genre_id })
+				)
+			).catch((e) => {
+				log.err(e.message)
+				throw e
+			})
+
+			return c.redirect(result[0].book_url)
+		},
+	],
+}
+
+async function suggestBook(connectionString, title, author, book_id) {
+	const client = new Client({ connectionString })
+	await client.connect()
+	try {
+		log(
+			`🔍 Attempting book lookup for "${title}" by ${author}` +
+				` with book_id ${book_id}`
+		)
+
+		try {
+			const searchUrl = new URL('https://openlibrary.org/search.json')
+			searchUrl.searchParams.set('title', title)
+			searchUrl.searchParams.set('author', author)
+			searchUrl.searchParams.set('fields', 'key')
+			searchUrl.searchParams.set('limit', '1')
+
+			const searchRes = await fetch(searchUrl.toString())
+			if (!searchRes.ok) {
+				log(`❌🔍 Search request failed for ${title}`)
+				throw new Error(`Search request failed: ${searchRes.status}`)
+			}
+
+			log(`🔍 Search request retrieved for ${title}...`)
+
+			const searchData = await searchRes.json()
+
+			if (!searchData.docs || searchData.docs.length === 0) {
+				log(`❌🔍 No docs available for ${title}`)
+				return
+			}
+
+			const workKey = searchData.docs[0].key
+
+			const workRes = await fetch(`https://openlibrary.org${workKey}.json`)
+			if (!workRes.ok) {
+				log(`❌🔍 Unable to retrieve work record for ${title}`)
+				throw new Error(`Work request failed: ${workRes.status}`)
+			}
+
+			const workData = await workRes.json()
+
+			log(`🔍 Checking covers for ${title}...`)
+			const firstCover = workData.covers?.[0]
+
+			if (firstCover) {
+				log('🔍 Work accepted. Adding to spotlight queue...', green)
+				await spotlightWorks.insert(client, {
+					cover_id: firstCover,
+					book_id: book_id,
+				})
+			}
+		} catch (e) {
+			log.err(e.message)
+		}
+	} finally {
+		await client.end()
+		log('👋🔍 suggestion client released.')
+	}
 }
