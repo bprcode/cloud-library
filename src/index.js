@@ -67,6 +67,17 @@ app
 	.get('/env', (c) => {
 		return c.text(`Environment is: ${process.env.NODE_ENV}`)
 	})
+	.all('*', (c) => {
+		return c.render(
+			'error.hbs',
+			{
+				title: 'Not Found',
+				status_code: 404,
+				error_message: 'File not found.',
+			},
+			404
+		)
+	})
 	.onError((err, c) => {
 		c.status(err instanceof HTTPException ? err.status : 500)
 
