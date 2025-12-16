@@ -29,13 +29,70 @@ const authorIdValidator = validator('param', async (value, c) => {
 })
 
 async function authorBodyValidation(value, c) {
+	const trim = (v) => (typeof v === 'string' ? v.trim() : v)
 	const validated = {}
 
-	console.log('<author validation placeholder>')
+	const first_name = trim(value.first_name)
+	const last_name = trim(value.last_name) || null
+	const author_id = c.req.valid('param')?.author_id ?? '-1'
+
+	if (first_name) {
+		const search = { first_name, last_name }
+		const result = await authors.find(c.client, search)
+
+		if (
+			result &&
+			result.length &&
+			String(result[0].author_id) !== String(author_id)
+		) {
+			c.trouble.add('first_name', 'Name already in use.')
+		}
+	}
+
+	// first_name (required)
+	if (!first_name || first_name.length < 1) {
+		c.trouble.add('first_name', 'First name required')
+	} else {
+		validated.first_name = first_name
+	}
+
+	// last_name (optional)
+	if (value.last_name) {
+		validated.last_name = trim(value.last_name)
+	}
+
+	// dob / dod (optional, fallback to year)
+	if (value.dob) validated.dob = trim(value.dob)
+	if (value.dod) validated.dod = trim(value.dod)
+
+	// bio (optional)
+	if (value.bio) validated.bio = trim(value.bio)
+
+	// yob / yod (optional, numeric)
+	if (value.yob) {
+		const yob = trim(value.yob)
+		if (!/^\d+$/.test(yob)) {
+			c.trouble.add('yob', 'Year of birth must be numeric.')
+		} else {
+			validated.yob = yob
+			if (!validated.dob) validated.dob = yob
+		}
+	}
+
+	if (value.yod) {
+		const yod = trim(value.yod)
+		if (!/^\d+$/.test(yod)) {
+			c.trouble.add('yod', 'Year of death must be numeric.')
+		} else {
+			validated.yod = yod
+			if (!validated.dod) validated.dod = yod
+		}
+	}
 
 	return validated
 }
 
+const authorFormValidator = validator('form', authorBodyValidation)
 const authorJsonValidator = validator('json', authorBodyValidation)
 
 export const authorController = {
@@ -132,6 +189,40 @@ export const authorController = {
 		authorJsonValidator,
 		async (c) => {
 			return c.json({ placeholder: 'author stuff' }, { status: 418 })
+		},
+	],
+
+	author_update_post: [
+		authorIdValidator,
+		authorFormValidator,
+		async (c) => {
+			const { author_id } = c.req.valid('param')
+
+			const author = {
+				first_name: c.req.valid('form').first_name,
+				last_name: c.req.valid('form').last_name || null,
+				dob: c.req.valid('form').dob || null,
+				dod: c.req.valid('form').dod || null,
+				bio: c.req.valid('form').bio || null,
+			}
+
+			if (!c.trouble.isEmpty()) {
+				if (c.trouble.array().find((e) => e.param === 'id')) {
+					return c.redirect(`/catalog/author/update`)
+				}
+
+				return c.render(`author_form.hbs`, {
+					author,
+					trouble: c.trouble.array(),
+					title: 'Edit Author',
+					form_action: undefined,
+					submit: 'Save Changes',
+				})
+			}
+
+			const [result] = await authors.update(c.client, author, { author_id })
+
+			return c.redirect(result.author_url)
 		},
 	],
 }

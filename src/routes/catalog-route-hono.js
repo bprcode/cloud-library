@@ -20,6 +20,7 @@ honoCatalogRouter
 	.get('/books', ...bookController.book_list)
 
 	.get('/author/:id/update', ...authorController.author_update_get)
+	.post('/author/:id/update', ...authorController.author_update_post)
 	.get('/author/:id', authorController.author_detail)
 	.get('/authors', ...authorController.author_list)
 

@@ -22,12 +22,10 @@ router
 	.post('/author/json', authorController.author_json_post) // AUDIT
 	.get('/author/create', authorController.author_create_get) // AUDIT
 	.post('/author/create', authorController.author_create_post) // AUDIT
-	.get('/author/delete', authorController.author_delete_choose) // AUDIT
 	.get('/author/:id/delete', authorController.author_delete_get) // AUDIT
 	.post('/author/:id/delete', authorController.author_delete_post) // AUDIT
-	.get('/author/update', authorController.author_update_choose) // AUDIT
 	.get('/author/:id/update', authorController.author_update_get)
-	.post('/author/:id/update', authorController.author_update_post) // AUDIT
+	.post('/author/:id/update', authorController.author_update_post)
 	.get('/author/:id', authorController.author_detail)
 	.get('/authors', authorController.author_list)
 
