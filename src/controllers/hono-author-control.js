@@ -185,13 +185,6 @@ export const authorController = {
 		},
 	],
 
-	author_json_post: [
-		authorJsonValidator,
-		async (c) => {
-			return c.json({ placeholder: 'author stuff' }, { status: 418 })
-		},
-	],
-
 	author_update_post: [
 		authorIdValidator,
 		authorFormValidator,
@@ -225,34 +218,28 @@ export const authorController = {
 			return c.redirect(result.author_url)
 		},
 	],
+
+	author_json_post: [
+		authorJsonValidator,
+		async (c) => {
+			if (!c.trouble.isEmpty()) {
+				return c.json({ trouble: c.trouble.array() }, { status: 400 })
+			}
+
+			try {
+				const result = await authors.insert(c.client, {
+					first_name: c.req.valid('json').first_name,
+					last_name: c.req.valid('json').last_name || null,
+					dob: c.req.valid('json').dob || null,
+					dod: c.req.valid('json').dod || null,
+					bio: c.req.valid('json').bio || null,
+				})
+
+				return c.json(result[0], { status: 201 })
+			} catch (e) {
+				log.err(e.message)
+				throw e
+			}
+		},
+	],
 }
-
-const EXAMPLE_author_json_post = [
-	// ...authorValidators,
-	// authorNameValidator,
-	async (req, res) => {
-		let result
-		const trouble = validationResult(req)
-
-		if (!trouble.isEmpty()) {
-			return res.status(400).send({
-				trouble: trouble.array(),
-			})
-		}
-
-		try {
-			result = await authors.insert({
-				first_name: req.body.first_name,
-				last_name: req.body.last_name || null,
-				dob: req.body.dob || null,
-				dod: req.body.dod || null,
-				bio: req.body.bio || null,
-			})
-		} catch (e) {
-			log.err(e.message)
-			throw e
-		}
-
-		res.status(201).send(result[0])
-	},
-]
