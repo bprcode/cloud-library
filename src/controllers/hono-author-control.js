@@ -1,5 +1,6 @@
 import { validator } from 'hono/validator'
 import { withPagination } from '../validation/hono-pagination'
+import { author_import_get } from './author-control'
 const { paginate } = require('./paginator.js')
 const {
 	authors,
@@ -15,7 +16,8 @@ const authorIdValidator = validator('param', async (value, c) => {
 		throw new Error('Missing author ID')
 	}
 
-	const [author] = await snipTimes(authors.find(c.client, { author_id }))
+	const found = await snipTimes(authors.find(c.client, { author_id }))
+	const author = found ? found[0] : null
 
 	if (author) {
 		return {
@@ -143,29 +145,29 @@ export const authorController = {
 		},
 	],
 
-	async author_detail(c) {
-		const author_id = c.req.param('id')
+	author_detail: [
+		authorIdValidator,
+		async (c) => {
+			const { author, author_id } = c.req.valid('param')
 
-		const [resultAuthors, resultBooks] = await Promise.all([
-			snipTimes(authors.find(c.client, { author_id })),
-			books.find(c.client, { author_id }),
-		])
+			if (!author) {
+				return c.render(`no_results.hbs`)
+			}
 
-		if (!resultAuthors) {
-			return c.render(`no_results.hbs`)
-		}
+			const bookList = await books.find(c.client, { author_id })
 
-		// Split text for paragraph tags:
-		if (resultAuthors[0].bio) {
-			resultAuthors[0].bio = resultAuthors[0].bio.split(/\n+/)
-		}
+			// Split text for paragraph tags:
+			if (author.bio) {
+				author.bio = author.bio.split(/\n+/)
+			}
 
-		return c.render(`author_detail.hbs`, {
-			author: resultAuthors[0],
-			books: resultBooks,
-			title: resultAuthors[0].full_name,
-		})
-	},
+			return c.render(`author_detail.hbs`, {
+				author,
+				books: bookList,
+				title: author.full_name,
+			})
+		},
+	],
 
 	author_update_get: [
 		authorIdValidator,
@@ -242,4 +244,25 @@ export const authorController = {
 			}
 		},
 	],
+
+	author_delete_get: [
+		authorIdValidator,
+		async (c) => {
+			if (!c.trouble.isEmpty()) {
+				return c.redirect(`/catalog/author/delete`)
+			}
+
+			const { author, author_id } = c.req.valid('param')
+			const bookList = await books.find(c.client, { author_id })
+
+			return c.render(`author_delete.hbs`, {
+				author,
+				books: bookList,
+			})
+		},
+	],
+
+	async author_import_get(c) {
+		return c.render(`import_author.hbs`, { title: 'Import author' })
+	},
 }

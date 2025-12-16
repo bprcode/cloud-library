@@ -8,7 +8,7 @@ const bookinstanceController = require('../controllers/bookinstance-control.js')
 router
 	.get('/', bookController.index)
 	.get('/book/import', bookController.book_import_get)
-	.post('/book/json', bookController.book_json_post) // AUDIT
+	.post('/book/json', bookController.book_json_post) // AUDIT?
 	.get('/book/create', bookController.book_create_get)
 	.post('/book/create', bookController.book_create_post)
 	.get('/book/:id/delete', bookController.book_delete_get)
@@ -18,11 +18,11 @@ router
 	.get('/book/:id', bookController.book_detail)
 	.get('/books', bookController.book_list)
 
-	.get('/author/import', authorController.author_import_get) // AUDIT
-	.post('/author/json', authorController.author_json_post) // AUDIT
+	.get('/author/import', authorController.author_import_get)
+	.post('/author/json', authorController.author_json_post) // AUDIT?
 	.get('/author/create', authorController.author_create_get) // AUDIT
 	.post('/author/create', authorController.author_create_post) // AUDIT
-	.get('/author/:id/delete', authorController.author_delete_get) // AUDIT
+	.get('/author/:id/delete', authorController.author_delete_get)
 	.post('/author/:id/delete', authorController.author_delete_post) // AUDIT
 	.get('/author/:id/update', authorController.author_update_get)
 	.post('/author/:id/update', authorController.author_update_post)
