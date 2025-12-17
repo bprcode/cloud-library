@@ -3,6 +3,50 @@ import { withPagination } from '../validation/hono-pagination'
 const { paginate } = require('./paginator.js')
 const { genres, booksByGenre } = require('../database.js')
 
+const genreIdValidator = validator('param', async (value, c) => {
+	const genre_id = value.id
+
+	if (!genre_id) {
+		throw new Error('Missing genre ID')
+	}
+
+	const genre = await genres.find(c.client, { genre_id })
+
+	if (genre) {
+		return {
+			genre_id,
+			genre,
+		}
+	}
+
+	c.trouble.add('id', 'No genre matched ID.')
+	return { genre_id }
+})
+
+const genreBodyValidator = async (value, c) => {
+	const validated = {}
+	const genre_id = c.req.valid('param').genre_id ?? '-1'
+
+	if (typeof value.name !== 'string' || value.name.length < 1) {
+		c.trouble.add('name', 'Name required')
+	} else {
+		validated.name = value.name.trim()
+	}
+
+	const collisions = await genres.find(c.client, { name: value.name })
+
+	if (
+		collisions &&
+		collisions.find((c) => String(c.genre_id) !== String(genre_id))
+	) {
+		c.trouble.add('name', 'Genre name already in use.')
+	}
+
+	return validated
+}
+
+const genreFormValidator = validator('form', genreBodyValidator)
+
 export const genreController = {
 	async genre_json_get(c) {
 		const result = await genres.find(c.client)
@@ -33,28 +77,80 @@ export const genreController = {
 		},
 	],
 
-  async genre_detail(c) {
-    const genre_id = c.req.param('id')
+	async genre_detail(c) {
+		const genre_id = c.req.param('id')
 
-    const [resultGenre, resultBooks, genreCount] = await Promise.all([
-        genres.find(c.client, { genre_id }),
-        booksByGenre.find(c.client, { genre_id }),
-        booksByGenre.count(c.client, { genre_id })
-    ])
+		const [resultGenre, resultBooks, genreCount] = await Promise.all([
+			genres.find(c.client, { genre_id }),
+			booksByGenre.find(c.client, { genre_id }),
+			booksByGenre.count(c.client, { genre_id }),
+		])
 
-    if ( !resultGenre )
-        return c.render(`no_results.hbs`, {
-            title: 'Genre not found.',
-            text: ' '
-        })
+		if (!resultGenre)
+			return c.render(`no_results.hbs`, {
+				title: 'Genre not found.',
+				text: ' ',
+			})
 
-    const title = resultGenre[0].name
+		const title = resultGenre[0].name
 
-    return c.render(`genre_detail.hbs`, {
-        title,
-        genre_url: resultGenre[0].genre_url,
-        result: resultBooks,
-        genreCount
-    })
-}
+		return c.render(`genre_detail.hbs`, {
+			title,
+			genre_url: resultGenre[0].genre_url,
+			result: resultBooks,
+			genreCount,
+		})
+	},
+
+	genre_update_get: [
+		genreIdValidator,
+		async (c) => {
+			if (!c.trouble.isEmpty()) {
+				return c.redirect(`/catalog/genre/update`)
+			}
+
+			const { genre } = c.req.valid('param')
+
+			// Render populated update form
+			return c.render(`genre_form.hbs`, {
+				title: 'Edit Genre',
+				form_action: undefined, // post to current URL
+				populate: genre,
+				submit: 'Save Changes',
+			})
+		},
+	],
+
+	genre_update_post: [
+		genreIdValidator,
+		genreFormValidator,
+		async (c) => {
+			if (!c.trouble.isEmpty()) {
+				// Redirect invalid ID update requests
+				if (c.trouble.array().find((e) => e.param === 'id')) {
+					return c.redirect(`/catalog/genre/update`)
+				}
+
+				// Re-render the form for invalid submitted data
+				return c.render(`genre_form.hbs`, {
+					trouble: c.trouble.array(),
+					title: 'Edit Genre',
+					form_action: undefined,
+					submit: 'Save Changes',
+					populate: { name: '' },
+				}, 400)
+			}
+
+      const {genre_id} = c.req.valid('param')
+      const {name} = c.req.valid('form')
+
+			const result = await genres.update(
+        c.client,
+				{ name },
+				{ genre_id }
+			)
+
+			return c.redirect(result[0].genre_url)
+		},
+	],
 }

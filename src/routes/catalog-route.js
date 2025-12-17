@@ -38,8 +38,8 @@ router
 	.get('/genre/:id/delete', genreController.genre_delete_get) // AUDIT
 	.post('/genre/:id/delete', genreController.genre_delete_post) // AUDIT
 	.get('/genre/update', genreController.genre_update_choose) // AUDIT
-	.get('/genre/:id/update', genreController.genre_update_get) // AUDIT
-	.post('/genre/:id/update', genreController.genre_update_post) // AUDIT
+	.get('/genre/:id/update', genreController.genre_update_get)
+	.post('/genre/:id/update', genreController.genre_update_post)
 	.get('/genre/:id', genreController.genre_detail)
 	.get('/genres', genreController.genre_list)
 

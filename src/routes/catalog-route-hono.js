@@ -31,5 +31,7 @@ honoCatalogRouter
 	.get('/authors', ...authorController.author_list)
 
 	.get('/genre/json', genreController.genre_json_get)
+	.get('/genre/:id/update', ...genreController.genre_update_get)
+	.post('/genre/:id/update', ...genreController.genre_update_post)
 	.get('/genre/:id', genreController.genre_detail)
 	.get('/genres', ...genreController.genre_list)
