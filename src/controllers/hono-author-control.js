@@ -262,6 +262,58 @@ export const authorController = {
 		},
 	],
 
+	author_delete_post: [
+		authorIdValidator,
+		async (c) => {
+			const { author_id } = c.req.valid('param')
+			await authors.delete(c.client, { author_id })
+			return c.redirect(`/catalog/authors`)
+		},
+	],
+
+	author_create_post: [
+		authorFormValidator,
+		async (c) => {
+			const item = {
+				first_name: c.req.valid('form').first_name,
+				last_name: c.req.valid('form').last_name || null,
+				dob: c.req.valid('form').dob || null,
+				dod: c.req.valid('form').dod || null,
+				bio: c.req.valid('form').bio || null,
+			}
+
+			if (!c.trouble.isEmpty()) {
+				return c.render(
+					`author_form.hbs`,
+					{
+						author: item,
+						trouble: c.trouble.array(),
+						title: 'Add Author',
+						form_action: '/catalog/author/create',
+						submit: 'Create',
+					},
+					400
+				)
+			}
+
+			try {
+				const [result] = await authors.insert(c.client, item)
+				return c.redirect(result.author_url)
+			} catch (e) {
+				log.err(e.message)
+				throw e
+			}
+		},
+	],
+
+	async author_create_get(c) {
+		return c.render(`author_form.hbs`, {
+			title: 'Add Author',
+			form_action: '/catalog/author/create',
+			submit: 'Create',
+		})
+	},
+
 	async author_import_get(c) {
 		return c.render(`import_author.hbs`, { title: 'Import author' })
 	},

@@ -21,10 +21,15 @@ honoCatalogRouter
 
 	.get('/author/import', authorController.author_import_get)
 	.post('/author/json', ...authorController.author_json_post)
+	.get('/author/create', authorController.author_create_get)
+	.post('/author/create', ...authorController.author_create_post)
 	.get('/author/:id/delete', ...authorController.author_delete_get)
+	.post('/author/:id/delete', ...authorController.author_delete_post)
 	.get('/author/:id/update', ...authorController.author_update_get)
 	.post('/author/:id/update', ...authorController.author_update_post)
 	.get('/author/:id', ...authorController.author_detail)
 	.get('/authors', ...authorController.author_list)
 
 	.get('/genre/json', genreController.genre_json_get)
+	.get('/genre/:id', genreController.genre_detail)
+	.get('/genres', ...genreController.genre_list)

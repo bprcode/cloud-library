@@ -20,10 +20,10 @@ router
 
 	.get('/author/import', authorController.author_import_get)
 	.post('/author/json', authorController.author_json_post) // AUDIT?
-	.get('/author/create', authorController.author_create_get) // AUDIT
-	.post('/author/create', authorController.author_create_post) // AUDIT
+	.get('/author/create', authorController.author_create_get)
+	.post('/author/create', authorController.author_create_post)
 	.get('/author/:id/delete', authorController.author_delete_get)
-	.post('/author/:id/delete', authorController.author_delete_post) // AUDIT
+	.post('/author/:id/delete', authorController.author_delete_post)
 	.get('/author/:id/update', authorController.author_update_get)
 	.post('/author/:id/update', authorController.author_update_post)
 	.get('/author/:id', authorController.author_detail)
@@ -40,8 +40,8 @@ router
 	.get('/genre/update', genreController.genre_update_choose) // AUDIT
 	.get('/genre/:id/update', genreController.genre_update_get) // AUDIT
 	.post('/genre/:id/update', genreController.genre_update_post) // AUDIT
-	.get('/genre/:id', genreController.genre_detail) // AUDIT
-	.get('/genres', genreController.genre_list) // AUDIT
+	.get('/genre/:id', genreController.genre_detail)
+	.get('/genres', genreController.genre_list)
 
 	.get(
 		['/bookinstance/create/:id', '/inventory/create/:id'],
