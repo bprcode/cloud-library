@@ -32,12 +32,10 @@ router
 	.post('/genre/associate/json', genreController.associate_json_post) // AUDIT
 	.get('/genre/json', genreController.genre_json_get)
 	.post('/genre/json', genreController.genre_json_post) // AUDIT
-	.get('/genre/create', genreController.genre_create_get) // AUDIT
-	.post('/genre/create', genreController.genre_create_post) // AUDIT
-	.get('/genre/delete', genreController.genre_delete_choose) // AUDIT
-	.get('/genre/:id/delete', genreController.genre_delete_get) // AUDIT
-	.post('/genre/:id/delete', genreController.genre_delete_post) // AUDIT
-	.get('/genre/update', genreController.genre_update_choose) // AUDIT
+	.get('/genre/create', genreController.genre_create_get)
+	.post('/genre/create', genreController.genre_create_post)
+	.get('/genre/:id/delete', genreController.genre_delete_get)
+	.post('/genre/:id/delete', genreController.genre_delete_post)
 	.get('/genre/:id/update', genreController.genre_update_get)
 	.post('/genre/:id/update', genreController.genre_update_post)
 	.get('/genre/:id', genreController.genre_detail)

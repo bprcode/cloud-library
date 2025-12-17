@@ -10,12 +10,12 @@ const genreIdValidator = validator('param', async (value, c) => {
 		throw new Error('Missing genre ID')
 	}
 
-	const genre = await genres.find(c.client, { genre_id })
+	const result = await genres.find(c.client, { genre_id })
 
-	if (genre) {
+	if (result?.length) {
 		return {
 			genre_id,
-			genre,
+			genre: result[0],
 		}
 	}
 
@@ -25,7 +25,7 @@ const genreIdValidator = validator('param', async (value, c) => {
 
 const genreBodyValidator = async (value, c) => {
 	const validated = {}
-	const genre_id = c.req.valid('param').genre_id ?? '-1'
+	const genre_id = c.req.valid('param')?.genre_id ?? '-1'
 
 	if (typeof value.name !== 'string' || value.name.length < 1) {
 		c.trouble.add('name', 'Name required')
@@ -40,6 +40,7 @@ const genreBodyValidator = async (value, c) => {
 		collisions.find((c) => String(c.genre_id) !== String(genre_id))
 	) {
 		c.trouble.add('name', 'Genre name already in use.')
+		validated.nameCollision = value.name
 	}
 
 	return validated
@@ -132,25 +133,85 @@ export const genreController = {
 				}
 
 				// Re-render the form for invalid submitted data
-				return c.render(`genre_form.hbs`, {
-					trouble: c.trouble.array(),
-					title: 'Edit Genre',
-					form_action: undefined,
-					submit: 'Save Changes',
-					populate: { name: '' },
-				}, 400)
+				return c.render(
+					`genre_form.hbs`,
+					{
+						trouble: c.trouble.array(),
+						title: 'Edit Genre',
+						form_action: undefined,
+						submit: 'Save Changes',
+						populate: { name: c.req.valid('form').nameCollision },
+					},
+					400
+				)
 			}
 
-      const {genre_id} = c.req.valid('param')
-      const {name} = c.req.valid('form')
+			const { genre_id } = c.req.valid('param')
+			const { name } = c.req.valid('form')
 
-			const result = await genres.update(
-        c.client,
-				{ name },
-				{ genre_id }
-			)
+			const result = await genres.update(c.client, { name }, { genre_id })
 
 			return c.redirect(result[0].genre_url)
+		},
+	],
+
+	async genre_create_get(c) {
+		return c.render(`genre_form.hbs`, {
+			title: 'Add Genre',
+			form_action: '/catalog/genre/create',
+			submit: 'Create',
+		})
+	},
+
+	genre_create_post: [
+		genreFormValidator,
+		async (c) => {
+			const { name, nameCollision } = c.req.valid('form')
+			if (!c.trouble.isEmpty()) {
+				return c.render(
+					`genre_form.hbs`,
+					{
+						trouble: c.trouble.array(),
+						title: 'Add Genre',
+						form_action: '/catalog/genre/create',
+						submit: 'Create',
+						populate: { name: nameCollision },
+					},
+					400
+				)
+			}
+			try {
+				const result = await genres.insert(c.client, { name })
+				return c.redirect(result[0].genre_url)
+			} catch (e) {
+				log.err(e.message)
+				throw e
+			}
+		},
+	],
+
+	genre_delete_get: [
+		genreIdValidator,
+		async (c) => {
+			if (!c.trouble.isEmpty()) {
+				return c.redirect(`/catalog/genre/delete`)
+			}
+
+			const { genre } = c.req.valid('param')
+			return c.render(`genre_delete.hbs`, { genre })
+		},
+	],
+	genre_delete_post: [
+		genreIdValidator,
+		async (c) => {
+			if (!c.trouble.isEmpty()) {
+				return c.redirect(`/catalog/genre/delete`)
+			}
+
+			const { genre_id } = c.req.valid('param')
+
+			await genres.delete(c.client, { genre_id })
+			return c.redirect(`/catalog/genres`)
 		},
 	],
 }
