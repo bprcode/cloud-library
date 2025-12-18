@@ -47,6 +47,7 @@ const genreBodyValidator = async (value, c) => {
 }
 
 const genreFormValidator = validator('form', genreBodyValidator)
+const genreJsonValidator = validator('json', genreBodyValidator)
 
 export const genreController = {
 	async genre_json_get(c) {
@@ -212,6 +213,24 @@ export const genreController = {
 
 			await genres.delete(c.client, { genre_id })
 			return c.redirect(`/catalog/genres`)
+		},
+	],
+
+	genre_json_post: [
+		genreJsonValidator,
+		async (c) => {
+			const { name } = c.req.valid('json')
+
+			if (!c.trouble.isEmpty()) {
+				return c.json({ trouble: c.trouble.array() }, { status: 409 })
+			}
+			try {
+				const result = await genres.insert(c.client, { name })
+				return await c.json(result[0], { status: 201 })
+			} catch (e) {
+				log.err(e.message)
+				throw e
+			}
 		},
 	],
 }

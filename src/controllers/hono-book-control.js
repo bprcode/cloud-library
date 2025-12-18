@@ -425,32 +425,6 @@ export const bookController = {
 	],
 }
 
-const book_json_post = [
-	// preventTitleCollision,
-	// ...bookValidators,
-	async (req, res) => {
-		const trouble = validationResult(req)
-		if (!trouble.isEmpty()) {
-			return res.status(400).send({ trouble: trouble.array() })
-		}
-
-		const item = {
-			title: req.body.title,
-			isbn: req.body.isbn || null,
-			author_id: req.body.author_id,
-			summary: req.body.summary || null,
-		}
-
-		// Having passed validation, create the new book.
-		const result = await justBooks.insert(item)
-
-		// Consider including the book in the recently-added list:
-		suggestRecent(req.body.work_key, result[0].book_id)
-
-		res.status(201).send(result[0])
-	},
-]
-
 async function suggestBook(connectionString, title, author, book_id) {
 	const client = new Client({ connectionString })
 	await client.connect()
