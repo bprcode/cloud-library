@@ -44,39 +44,39 @@ router
 	.get(
 		['/bookinstance/create/:id', '/inventory/create/:id'],
 		bookinstanceController.bookinstance_create_get
-	) // AUDIT
+	)
 	.get(
 		['/bookinstance/create', '/inventory/create'],
 		bookinstanceController.bookinstance_create_get
-	) // AUDIT
+	)
 	.post(
 		['/bookinstance/create', '/inventory/create'],
 		bookinstanceController.bookinstance_create_post
-	) // AUDIT
+	)
 	.get(
 		['/bookinstance/delete', '/inventory/delete'],
 		bookinstanceController.bookinstance_delete_choose
-	) // AUDIT
+	)
 	.get(
 		['/bookinstance/:id/delete', '/inventory/:id/delete'],
 		bookinstanceController.bookinstance_delete_get
-	) // AUDIT
+	)
 	.post(
 		['/bookinstance/:id/delete', '/inventory/:id/delete'],
 		bookinstanceController.bookinstance_delete_post
-	) // AUDIT
+	)
 	.get(
 		['/bookinstance/update', '/inventory/update'],
 		bookinstanceController.bookinstance_update_choose
-	) // AUDIT
+	)
 	.get(
 		['/bookinstance/:id/update', '/inventory/:id/update'],
 		bookinstanceController.bookinstance_update_get
-	) // AUDIT
+	)
 	.post(
 		['/bookinstance/:id/update', '/inventory/:id/update'],
 		bookinstanceController.bookinstance_update_post
-	) // AUDIT
+	)
 	.get(
 		['/bookinstance/:id', '/inventory/:id'],
 		bookinstanceController.bookinstance_detail

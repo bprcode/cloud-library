@@ -72,11 +72,92 @@ async function instanceBodyValidator(value, c) {
 const instanceFormValidator = validator('form', instanceBodyValidator)
 
 export const bookinstanceController = {
-	bookinstance_create_get: [],
-	bookinstance_create_post: [],
+	bookinstance_create_get: [
+		async (c) => {
+			const [bookList, statusList] = await Promise.all([
+				justBooks.find(c.client),
+				bookStatusList(c.client),
+			])
 
-	bookinstance_delete_get: [],
-	bookinstance_delete_post: [],
+			const book_id = c.req.param('id') ?? null
+
+			return c.render(`bookinstance_form.hbs`, {
+				bookList,
+				statusList,
+				title: 'Add inventory item',
+				form_action: '/catalog/inventory/create',
+				submit: 'Create',
+				populate: { book_id },
+			})
+		},
+	],
+
+	bookinstance_create_post: [
+		instanceFormValidator,
+		async (c) => {
+			const [bookList, statusList] = await Promise.all([
+				justBooks.find(c.client),
+				bookStatusList(c.client),
+			])
+
+			const validated = c.req.valid('form')
+			const item = {
+				book_id: validated.book_id,
+				imprint: validated.imprint,
+				status: validated.status,
+				due_back: validated.due_back,
+			}
+
+			if (!c.trouble.isEmpty()) {
+				return c.render(
+					`bookinstance_form.hbs`,
+					{
+						bookList,
+						statusList,
+						trouble: c.trouble.array(),
+						title: 'Add inventory item',
+						form_action: '/catalog/inventory/create',
+						submit: 'Create',
+						populate: item,
+					},
+					400
+				)
+			}
+
+			if (!validated.due_back) delete item.due_back // Allow database to handle default
+
+			try {
+				const [result] = await bookInstances.insert(c.client, item)
+				return c.redirect(result.book_instance_url)
+			} catch (e) {
+				log.err(e.message)
+				throw e
+			}
+		},
+	],
+
+	bookinstance_delete_get: [
+		instanceIdValidator,
+		async (c) => {
+			if (!c.trouble.isEmpty()) {
+				return c.redirect(`/catalog/inventory`)
+			}
+
+			const { instance } = c.req.valid('param')
+			return c.render(`bookinstance_delete.hbs`, { item: instance })
+		},
+	],
+	bookinstance_delete_post: [
+		instanceIdValidator,
+		async (c) => {
+			if (c.trouble.isEmpty()) {
+				const { instance_id } = c.req.valid('param')
+				await bookInstances.delete(c.client, { instance_id })
+			}
+
+			return c.redirect(`/catalog/inventory`)
+		},
+	],
 
 	bookinstance_update_get: [
 		instanceIdValidator,

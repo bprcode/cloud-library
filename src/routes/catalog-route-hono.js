@@ -41,14 +41,17 @@ honoCatalogRouter
 	.get('/genre/:id', genreController.genre_detail)
 	.get('/genres', ...genreController.genre_list)
 
-	// Duplicate registrations for route aliases:
+	// Duplicate registrations for route aliases
+	// Create by id:
 	.get(
 		'/bookinstance/create/:id',
 		...bookinstanceController.bookinstance_create_get
 	)
 	.get('/inventory/create/:id', ...bookinstanceController.bookinstance_create_get)
+	// Create (without id):
 	.get('/bookinstance/create', ...bookinstanceController.bookinstance_create_get)
 	.get('/inventory/create', ...bookinstanceController.bookinstance_create_get)
+
 	.post('/bookinstance/create', ...bookinstanceController.bookinstance_create_post)
 	.post('/inventory/create', ...bookinstanceController.bookinstance_create_post)
 	.get(
