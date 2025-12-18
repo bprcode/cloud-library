@@ -15,15 +15,14 @@ const instanceValidators = [
     body('imprint', 'Imprint required')
         .trim()
         .isLength({ min: 1 }),
-    // debug -- not supported by refactor
-    // body('status')
-    //     .isLength({ min: 1})
-    //     .custom(async value => {
-    //         const validStatusList = await bookStatusList()
-    //         if (!validStatusList.includes(value) )
-    //             throw new Error(`Status not recognized.`)
-    //     })
-        // .withMessage('Invalid status.'),
+    body('status')
+        .isLength({ min: 1})
+        .custom(async value => {
+            const validStatusList = await bookStatusList()
+            if (!validStatusList.includes(value) )
+                throw new Error(`Status not recognized.`)
+        })
+        .withMessage('Invalid status.'),
     body('due_back', 'Invalid date')
         .optional({ checkFalsy: true })
         .isISO8601()

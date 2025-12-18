@@ -545,9 +545,11 @@ async function bookStatusList(client) {
 		throw new Error('No client provided to bookStatusList')
 	}
 
-	return (
-		await client.query(`SELECT unnest(enum_range(NULL::lib.book_status))`)
-	).map((e) => e.unnest)
+	const result = await client.query(`SELECT unnest(enum_range(NULL::lib.book_status))`)
+	if(!result) {
+		throw new Error('Missing book status list')
+	}
+	return result.rows.map(r => r.unnest)
 }
 
 module.exports = {

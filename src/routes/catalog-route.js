@@ -80,10 +80,10 @@ router
 	.get(
 		['/bookinstance/:id', '/inventory/:id'],
 		bookinstanceController.bookinstance_detail
-	) // AUDIT
+	)
 	.get(
 		['/bookinstances', '/inventory'],
 		bookinstanceController.bookinstance_list
-	) // AUDIT
+	)
 
 module.exports = router
