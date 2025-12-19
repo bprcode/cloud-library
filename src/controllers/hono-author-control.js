@@ -192,13 +192,13 @@ export const authorController = {
 		authorFormValidator,
 		async (c) => {
 			const { author_id } = c.req.valid('param')
-
+			const validated = c.req.valid('form')
 			const author = {
-				first_name: c.req.valid('form').first_name,
-				last_name: c.req.valid('form').last_name || null,
-				dob: c.req.valid('form').dob || null,
-				dod: c.req.valid('form').dod || null,
-				bio: c.req.valid('form').bio || null,
+				first_name: validated.first_name,
+				last_name: validated.last_name || null,
+				dob: validated.dob || null,
+				dod: validated.dod || null,
+				bio: validated.bio || null,
 			}
 
 			if (!c.trouble.isEmpty()) {
@@ -229,12 +229,13 @@ export const authorController = {
 			}
 
 			try {
+				const validated = c.req.valid('json')
 				const result = await authors.insert(c.client, {
-					first_name: c.req.valid('json').first_name,
-					last_name: c.req.valid('json').last_name || null,
-					dob: c.req.valid('json').dob || null,
-					dod: c.req.valid('json').dod || null,
-					bio: c.req.valid('json').bio || null,
+					first_name: validated.first_name,
+					last_name: validated.last_name || null,
+					dob: validated.dob || null,
+					dod: validated.dod || null,
+					bio: validated.bio || null,
 				})
 
 				return c.json(result[0], { status: 201 })
@@ -274,12 +275,13 @@ export const authorController = {
 	author_create_post: [
 		authorFormValidator,
 		async (c) => {
+			const validated = c.req.valid('form')
 			const item = {
-				first_name: c.req.valid('form').first_name,
-				last_name: c.req.valid('form').last_name || null,
-				dob: c.req.valid('form').dob || null,
-				dod: c.req.valid('form').dod || null,
-				bio: c.req.valid('form').bio || null,
+				first_name: validated.first_name,
+				last_name: validated.last_name || null,
+				dob: validated.dob || null,
+				dod: validated.dod || null,
+				bio: validated.bio || null,
 			}
 
 			if (!c.trouble.isEmpty()) {
