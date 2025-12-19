@@ -1,7 +1,12 @@
 import { validator } from 'hono/validator'
 import { withPagination } from '../validation/hono-pagination'
 const { paginate } = require('./paginator.js')
-const { genres, booksByGenre } = require('../database.js')
+const {
+	genres,
+	booksByGenre,
+	bookGenres,
+	justBooks,
+} = require('../database.js')
 
 const genreIdValidator = validator('param', async (value, c) => {
 	const genre_id = value.id
@@ -227,6 +232,47 @@ export const genreController = {
 			try {
 				const result = await genres.insert(c.client, { name })
 				return await c.json(result[0], { status: 201 })
+			} catch (e) {
+				log.err(e.message)
+				throw e
+			}
+		},
+	],
+
+	associate_json_post: [
+		validator('json', async (value, c) => {
+			const validated = {}
+			const { genre_id, book_id } = value
+
+			if (await genres.find(c.client, { genre_id })) {
+				validated.genre_id = genre_id
+			} else {
+				c.trouble.add('genre_id', 'Invalid genre ID.')
+			}
+
+			if (await justBooks.find(c.client, { book_id })) {
+				validated.book_id = book_id
+			} else {
+				c.trouble.add('book_id', 'Invalid book ID.')
+			}
+
+			return validated
+		}),
+		async (c) => {
+			if (!c.trouble.isEmpty()) {
+				return c.json({ trouble: c.trouble.array() }, { status: 400 })
+			}
+
+			try {
+				const { book_id, genre_id } = c.req.valid('json')
+
+				const result = await bookGenres.insert(c.client, {
+					book_id,
+					genre_id,
+				})
+				if (result) {
+					return c.json(result[0], { status: 201 })
+				}
 			} catch (e) {
 				log.err(e.message)
 				throw e
