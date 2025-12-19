@@ -147,7 +147,6 @@ el('import-button-id').addEventListener('click', async event => {
             .map(k => ({ suggestion_id: parseInt(k.split('-')[1]) }) )
 
     try {
-        console.log('✔️ 1')
         // Attempt to create author
         authorResult = await fetch('../author/json', {
             headers: {
@@ -156,11 +155,10 @@ el('import-button-id').addEventListener('click', async event => {
             method: 'POST',
             body: JSON.stringify(authorInput)
         }).then(response => response.json())
-        console.log('✔️ 2')
 
         // If creation failed because the author is already recorded,
         // use the existing author_id and proceed:
-        if (authorResult.trouble.some(t => t.msg?.includes('in use'))) {
+        if (authorResult.trouble?.some(t => t.msg?.includes('in use'))) {
             console.log('author name was in use...')
 
             const previousID = authorResult.trouble[0].msg.split('#')[1]
@@ -174,7 +172,6 @@ el('import-button-id').addEventListener('click', async event => {
 
         // Attempt to create book
         bookInput.author_id = authorResult.author_id
-        console.log('✔️ 3')
         bookResult = await fetch('./json', {
             headers: {
                 'Content-Type': 'application/json'
@@ -182,7 +179,6 @@ el('import-button-id').addEventListener('click', async event => {
             method: 'POST',
             body: JSON.stringify(bookInput)
         }).then(response => response.json())
-        console.log('✔️ 4')
 
         if (bookResult.trouble) {
             throw new Error('Error recording book')
@@ -193,7 +189,6 @@ el('import-button-id').addEventListener('click', async event => {
                 .filter(([k,v]) => k.startsWith('suggestion'))
                 .map(([k,v]) => v)
 
-                console.log('✔️ 5')
         // Attempt to create suggested genres
         const createdSuggestions = await Promise.all([
             ...selectedSuggestions.map(s => fetch('../genre/json', {
@@ -202,7 +197,6 @@ el('import-button-id').addEventListener('click', async event => {
                     body: JSON.stringify({ name: s })
                 }).then(response => response.json()))
         ])
-        console.log('✔️ 6')
 
         // Attempt to associate genres
         const associatedGenres = genreChecks.concat(createdSuggestions)
@@ -215,7 +209,6 @@ el('import-button-id').addEventListener('click', async event => {
                     genre_id: g.genre_id
                 })
             }).then(response => response.json())))
-            console.log('✔️ 7')
 
         location.href = bookResult.book_url
 

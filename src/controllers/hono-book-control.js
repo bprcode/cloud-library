@@ -55,7 +55,7 @@ async function bookBodyValidation(value, c) {
 		}
 	}
 
-	const author_id = (value.author_id || '').trim()
+	const author_id = (String(value.author_id) || '').trim()
 	if (!author_id) {
 		c.trouble.add('author_id', 'No author indicated.')
 	} else {
