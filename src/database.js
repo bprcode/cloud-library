@@ -78,7 +78,7 @@ async function bookDetailQuery(client, bookId) {
 
 async function trigramAuthorQuery(client, fuzzy) {
 	await client.query('BEGIN')
-	await client.query(`SET LOCAL pg_trgm.similarity_threshold = 0.1`)
+	await client.query(`SET LOCAL pg_trgm.similarity_threshold = 0.05`)
 	const results = await client.query(
 		`
 			SELECT full_name, dob, dod, author_url, blurb,
@@ -103,7 +103,7 @@ async function trigramAuthorQuery(client, fuzzy) {
 }
 async function trigramTitleQuery(client, fuzzy) {
 	await client.query('BEGIN')
-	await client.query(`SET LOCAL pg_trgm.similarity_threshold = 0.1`)
+	await client.query(`SET LOCAL pg_trgm.similarity_threshold = 0.05`)
 	const results = await client.query(
 		`
 			SELECT 

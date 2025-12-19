@@ -47,7 +47,10 @@ async function authorBodyValidation(value, c) {
 			result.length &&
 			String(result[0].author_id) !== String(author_id)
 		) {
-			c.trouble.add('first_name', 'Name already in use.')
+			c.trouble.add(
+				'first_name',
+				`Name already in use: #${result[0].author_id}`
+			)
 		}
 	}
 
