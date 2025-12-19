@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { honoCatalogRouter } from './routes/catalog-route-hono.js'
+import { honoCatalogRouter } from './routes/hono-catalog-route.js'
 import { honoResetRouter } from './routes/hono-reset-route.js'
 import { HTTPException } from 'hono/http-exception'
 import { Trouble } from './validation/Trouble.js'

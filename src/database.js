@@ -18,64 +18,6 @@ function format(query, ...args) {
 	return query
 }
 
-async function bookUpdateGetQuery(client, bookId) {
-	/*
-	SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE book_id::text ILIKE $1 ORDER BY index_title, last_name, first_name
-parameters: [ '91', [length]: 1 ]
- values: 91
-  SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE book_id::text ILIKE $1 ORDER BY index_title, last_name, first_name
-parameters: [ '91', [length]: 1 ]
-SELECT * FROM lib.genres ORDER BY name
-SELECT * FROM lib.authors ORDER BY last_name, first_name
- values: 91
-SELECT * FROM lib.book_genres JOIN lib.genres USING(genre_id) WHERE book_id::text ILIKE $1 ORDER BY name
-*/
-	const results = await Promise.all([
-		client.query(
-			`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE book_id::text ILIKE $1 ORDER BY index_title, last_name, first_name`,
-			bookId
-		),
-		client.query(
-			`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE book_id::text ILIKE $1 ORDER BY index_title, last_name, first_name`,
-			bookId
-		),
-		client.query(
-			`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE book_id::text ILIKE $1 ORDER BY index_title, last_name, first_name`,
-			bookId
-		),
-		client.query(
-			`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE book_id::text ILIKE $1 ORDER BY index_title, last_name, first_name`,
-			bookId
-		),
-		client.query(
-			`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE book_id::text ILIKE $1 ORDER BY index_title, last_name, first_name`,
-			bookId
-		),
-	])
-}
-async function bookDetailQuery(client, bookId) {
-	const results = await Promise.all([
-		client.query(
-			`SELECT * FROM lib.books JOIN lib.authors ` +
-				`USING (author_id) WHERE book_id::text ILIKE $1 ` +
-				`ORDER BY index_title, last_name, first_name`,
-			[bookId]
-		),
-		client.query(
-			`SELECT * FROM lib.book_instance ` +
-				`WHERE book_id::text ILIKE $1 ORDER BY instance_id`,
-			[bookId]
-		),
-		client.query(
-			`SELECT * FROM lib.book_genres JOIN lib.genres USING(genre_id) ` +
-				`WHERE book_id::text ILIKE $1 ORDER BY name`,
-			[bookId]
-		),
-	])
-
-	return results.map((r) => r.rows)
-}
-
 async function trigramAuthorQuery(client, fuzzy) {
 	await client.query('BEGIN')
 	await client.query(`SET LOCAL pg_trgm.similarity_threshold = 0.05`)
@@ -97,9 +39,8 @@ async function trigramAuthorQuery(client, fuzzy) {
 		[fuzzy]
 	)
 	await client.query('COMMIT')
-	
+
 	return results.rows
-	
 }
 async function trigramTitleQuery(client, fuzzy) {
 	await client.query('BEGIN')
@@ -127,51 +68,6 @@ async function trigramTitleQuery(client, fuzzy) {
 		[fuzzy]
 	)
 	await client.query('COMMIT')
-	
-	return results.rows
-}
-
-async function catalogQuery(client) {
-	const results = await Promise.all([
-		client.query(
-			`SELECT count(*) FROM lib.books JOIN lib.authors USING(author_id)`
-		),
-		client.query(`SELECT count(*) FROM lib.authors`),
-		client.query(`SELECT count(*) FROM lib.genres`),
-		client.query(
-			`SELECT cover_id, title, snippet, book_url FROM lib.spotlight_works ` +
-				`JOIN lib.books USING(book_id) ORDER BY serial, index_title`
-		),
-	])
-
-	return [
-		results[0].rows[0].count,
-		results[1].rows[0].count,
-		results[2].rows[0].count,
-		results[3].rows,
-	]
-}
-
-async function bookListQuery(client, page, limit) {
-	const results = await Promise.all([
-		client.query(
-			`SELECT book_url, title, snippet, author_url, full_name ` +
-				`FROM lib.books JOIN lib.authors USING(author_id) ` +
-				`ORDER BY index_title, last_name, first_name LIMIT $1 OFFSET $2`,
-			[limit, paginationOffset(page, limit)]
-		),
-		client.query(`SELECT count(*) FROM lib.books`),
-	])
-
-	return [results[0].rows, results[1].rows[0].count]
-}
-
-async function allBooksQuery(client) {
-	const results = await client.query(
-		`SELECT book_url, title, snippet, author_url, full_name ` +
-			`FROM lib.books JOIN lib.authors USING(author_id) ` +
-			`ORDER BY index_title, last_name, first_name`
-	)
 
 	return results.rows
 }
@@ -545,20 +441,18 @@ async function bookStatusList(client) {
 		throw new Error('No client provided to bookStatusList')
 	}
 
-	const result = await client.query(`SELECT unnest(enum_range(NULL::lib.book_status))`)
-	if(!result) {
+	const result = await client.query(
+		`SELECT unnest(enum_range(NULL::lib.book_status))`
+	)
+	if (!result) {
 		throw new Error('Missing book status list')
 	}
-	return result.rows.map(r => r.unnest)
+	return result.rows.map((r) => r.unnest)
 }
 
 module.exports = {
-	bookDetailQuery,
 	trigramTitleQuery,
 	trigramAuthorQuery,
-	catalogQuery,
-	bookListQuery,
-	allBooksQuery,
 	snipTimes,
 	books,
 	justBooks,
