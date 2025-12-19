@@ -1,12 +1,10 @@
 import { Hono } from 'hono'
 import { honoCatalogRouter } from './routes/catalog-route-hono.js'
-import {honoResetRouter} from './routes/hono-reset-route.js'
-const { Client } = require('pg')
-require('@bprcode/handy')
-import express from 'express'
+import { honoResetRouter } from './routes/hono-reset-route.js'
 import { HTTPException } from 'hono/http-exception'
 import { Trouble } from './validation/Trouble.js'
-const oldApp = express()
+require('@bprcode/handy')
+const { Client } = require('pg')
 
 const app = new Hono({ strict: false })
 
@@ -92,9 +90,6 @@ app
 		})
 	})
 
-//
-const helmet = require('helmet')
-
 // Initialize templating
 const { DateTime } = require('luxon')
 
@@ -140,67 +135,5 @@ Handlebars.registerHelper('error-check', (trouble, name) => {
 	if (trouble) return trouble.find((t) => t.param === name)?.msg
 	return undefined
 })
-
-// Load routers
-const catalogRouter = require('./routes/catalog-route.js')
-
-oldApp
-	.use(helmet({ contentSecurityPolicy: false }))
-	.disable('x-powered-by')
-
-	.use(express.urlencoded({ extended: true }))
-	.use(express.json())
-
-	.use((req, res, next) => {
-		if (process.env.NODE_ENV !== 'production') {
-			log(req.method + '> ' + req.originalUrl, dim)
-		}
-		next()
-	})
-
-	// Patch render method to directly reference compiled template bundle:
-	.use((req, res, next) => {
-		res.render = (template, options) => {
-			const templateName = template.split('.')[0]
-
-			if (!Handlebars) {
-				throw new Error('Handlebars not defined.')
-			}
-			if (!Handlebars.templates) {
-				throw new Error('Handlebars.templates not defined.')
-			}
-
-			if (!(templateName in Handlebars.templates)) {
-				throw new Error(`${template} not found in templates`)
-			}
-
-			res.send(Handlebars.templates[templateName](options))
-		}
-
-		next()
-	})
-
-	.use('/health', (req, res) => {
-		res.status(200).send()
-	})
-	.get('/', (req, res) => {
-		res.redirect('/catalog')
-	})
-	.use('/catalog', catalogRouter)
-
-	.use((req, res, next) => {
-		res.status(404)
-		throw new Error('File not found.')
-	})
-
-	.use((err, req, res, next) => {
-		res.render('error.hbs', {
-			title: 'Error Encountered',
-			status_code: res.statusCode,
-			error_message: err.message,
-			error_stack:
-				process.env.NODE_ENV !== 'production' ? err.stack : undefined,
-		})
-	})
 
 export default app

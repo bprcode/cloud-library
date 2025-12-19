@@ -1,27 +1,4 @@
-const { query } = require('express-validator')
-
-module.exports.sanitizePagination = [
-	query('page')
-		.toInt()
-		.customSanitizer((v) => (v < 1 ? 1 : v)),
-	query('limit')
-		.toInt()
-		.customSanitizer((v) => (v < 1 ? 1 : v)),
-]
-
-module.exports.includePagination = (req, res, next) => {
-	const queryPage = parseInt(req.query.page) || 1
-	const queryLimit = parseInt(req.query.limit) || 10
-
-	req.sanitizedPagination = {
-		page: queryPage < 1 ? 1 : queryPage,
-		limit: queryLimit < 1 ? 1 : queryLimit,
-	}
-
-	next()
-}
-
-module.exports.paginate = function (page, limit, total) {
+export function paginate (page, limit, total) {
 	page = parseInt(page)
 	limit = parseInt(limit)
 	total = parseInt(total)

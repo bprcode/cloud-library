@@ -1,7 +1,7 @@
 import { validator } from 'hono/validator'
 import { withPagination } from '../validation/hono-pagination'
-import { author_import_get } from './author-control'
-const { paginate } = require('./paginator.js')
+import { paginate } from './paginator'
+
 const {
 	authors,
 	books,

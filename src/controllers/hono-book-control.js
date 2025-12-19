@@ -10,7 +10,7 @@ const {
 	suggestions,
 	trigramTitleQuery,
 } = require('../database.js')
-const { paginate } = require('./paginator.js')
+import {paginate} from './paginator'
 import { Client } from 'pg'
 import { withPagination } from '../validation/hono-pagination'
 import { validator } from 'hono/validator'

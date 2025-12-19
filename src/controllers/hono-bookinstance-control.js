@@ -1,6 +1,6 @@
 import { validator } from 'hono/validator'
 import { withPagination } from '../validation/hono-pagination'
-const { paginate } = require('./paginator.js')
+import { paginate } from './paginator'
 const {
 	inventory,
 	bookInstances,
