@@ -8,7 +8,7 @@ const bookinstanceController = require('../controllers/bookinstance-control.js')
 router
 	.get('/', bookController.index)
 	.get('/book/import', bookController.book_import_get)
-	.post('/book/json', bookController.book_json_post) // AUDIT
+	.post('/book/json', bookController.book_json_post)
 	.get('/book/create', bookController.book_create_get)
 	.post('/book/create', bookController.book_create_post)
 	.get('/book/:id/delete', bookController.book_delete_get)
@@ -19,7 +19,7 @@ router
 	.get('/books', bookController.book_list)
 
 	.get('/author/import', authorController.author_import_get)
-	.post('/author/json', authorController.author_json_post) // AUDIT?
+	.post('/author/json', authorController.author_json_post)
 	.get('/author/create', authorController.author_create_get)
 	.post('/author/create', authorController.author_create_post)
 	.get('/author/:id/delete', authorController.author_delete_get)

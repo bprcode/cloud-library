@@ -427,8 +427,8 @@ export const bookController = {
 
 async function suggestBook(connectionString, title, author, book_id) {
 	const client = new Client({ connectionString })
-	await client.connect()
 	try {
+		await client.connect()
 		log(
 			`🔍 Attempting book lookup for "${title}" by ${author}` +
 				` with book_id ${book_id}`
@@ -489,8 +489,9 @@ async function suggestRecent(connectionString, workKey, book_id) {
 	const minDescriptionLength = 200
 	if (typeof workKey !== 'string') return
 
+	const client = new Client({ connectionString })
+
 	try {
-		const client = new Client({ connectionString })
 		await client.connect()
 		log('👆🔍 recent suggestion client acquired.')
 
@@ -506,7 +507,7 @@ async function suggestRecent(connectionString, workKey, book_id) {
 		const data = await response.json()
 
 		if (!Array.isArray(data.covers)) {
-			log(`Rejecting suggestion (no covers available for ${workKey})`, 'pink')
+			log(`Rejecting suggestion (no covers available for ${workKey})`, pink)
 			return
 		}
 
@@ -514,10 +515,10 @@ async function suggestRecent(connectionString, workKey, book_id) {
 		const parsed = parseDescription(data.description)
 
 		if (firstCover > 0 && parsed.length > minDescriptionLength) {
-			log('Suggested work looks good.', 'pink')
-			await spotlightWorks.insert({ cover_id: firstCover, book_id: book_id })
+			log('🔍 Suggested work looks good.', yellow)
+			await spotlightWorks.insert(client, { cover_id: firstCover, book_id: book_id })
 		} else {
-			log("This text doesn't look like a good candidate.", 'yellow')
+			log("🔍 This text doesn't look like a good candidate.", pink)
 		}
 	} catch (e) {
 		log.err(e.message)

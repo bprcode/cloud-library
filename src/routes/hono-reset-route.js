@@ -1,14 +1,14 @@
-const express = require('express')
-const { query } = require('../database.js')
-const router = express.Router()
+import { Hono } from 'hono'
 
-const resetDatabase = async function (req, res) {
-  result = await query(resetSQL)
-  res.send('Reset complete.')
-  console.log('♻️ Reset complete.')
+export const honoResetRouter = new Hono()
+
+const resetDatabase = async function (c) {
+  const result = await c.client.query(resetSQL)
+  log('♻️ Reset complete.')
+  return c.text('Reset complete.')
 }
 
-router
+honoResetRouter
   .post('/', resetDatabase)
 
 const resetSQL =
@@ -48,5 +48,3 @@ SELECT SETVAL('lib.spotlight_works_serial_seq',
   (SELECT max(serial) FROM lib.spotlight_works));
 COMMIT;
 `
-
-module.exports = router

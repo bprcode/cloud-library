@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { honoCatalogRouter } from './routes/catalog-route-hono.js'
+import {honoResetRouter} from './routes/hono-reset-route.js'
 const { Client } = require('pg')
 require('@bprcode/handy')
 import express from 'express'
@@ -64,6 +65,7 @@ app
 		return c.redirect('/catalog')
 	})
 	.route('/catalog', honoCatalogRouter)
+	.route('/reset', honoResetRouter)
 	.get('/env', (c) => {
 		return c.text(`Environment is: ${process.env.NODE_ENV}`)
 	})
@@ -141,7 +143,6 @@ Handlebars.registerHelper('error-check', (trouble, name) => {
 
 // Load routers
 const catalogRouter = require('./routes/catalog-route.js')
-const resetRouter = require('./routes/reset-route.js')
 
 oldApp
 	.use(helmet({ contentSecurityPolicy: false }))
@@ -186,7 +187,6 @@ oldApp
 		res.redirect('/catalog')
 	})
 	.use('/catalog', catalogRouter)
-	.use('/reset', resetRouter)
 
 	.use((req, res, next) => {
 		res.status(404)
@@ -203,13 +203,4 @@ oldApp
 		})
 	})
 
-// const server = oldApp.listen(3000, () => {
-// 	if (process.env.NODE_ENV === 'production')
-// 		log('App running in production mode.', blue)
-// 	else log('App running in development mode.', yellow)
-
-// 	log(moo() + ' Server active on: ', green, server.address())
-// })
-
-// export default httpServerHandler({ port: 3000 })
 export default app
