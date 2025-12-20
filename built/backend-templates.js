@@ -937,7 +937,7 @@ templates['book_delete'] = template({"1":function(container,depth0,helpers,parti
         return undefined
     };
 
-  return ((stack1 = container.invokePartial(lookupProperty(partials,"catalog_layout"),depth0,{"name":"catalog_layout","hash":{"no_title":1},"fn":container.program(1, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "")
+  return ((stack1 = container.invokePartial(lookupProperty(partials,"catalog_layout"),depth0,{"name":"catalog_layout","hash":{"no_title":1,"title":"Book"},"fn":container.program(1, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "")
     + "\n";
 },"1_d":  function(fn, props, container, depth0, data, blockParams, depths) {
 
@@ -948,7 +948,7 @@ templates['book_delete'] = template({"1":function(container,depth0,helpers,parti
         return undefined
     };
 
-  fn = lookupProperty(decorators,"inline")(fn,props,container,{"name":"inline","hash":{},"fn":container.program(2, data, 0, blockParams, depths),"inverse":container.noop,"args":["content"],"data":data,"loc":{"start":{"line":2,"column":32},"end":{"line":41,"column":12}}}) || fn;
+  fn = lookupProperty(decorators,"inline")(fn,props,container,{"name":"inline","hash":{},"fn":container.program(2, data, 0, blockParams, depths),"inverse":container.noop,"args":["content"],"data":data,"loc":{"start":{"line":2,"column":45},"end":{"line":41,"column":12}}}) || fn;
   return fn;
   }
 
