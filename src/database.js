@@ -84,11 +84,6 @@ async function clientQuery(client, ...etc) {
 			return null
 		}
 
-		rows.forEach(r => {
-			if(r.due_back) {
-				console.log('due_back:', r.due_back, 'is date?', r.due_back instanceof Date)
-			}
-		})
 		return rows
 	} catch (e) {
 		dbLog('Database client error:', pink, e)
@@ -97,22 +92,6 @@ async function clientQuery(client, ...etc) {
 
 function paginationOffset(page, limit) {
 	return (page - 1) * limit || 0
-}
-
-/**
- * Remove and return the internal _page and _limit properties
- * from a condition object, along with the calculated offset.
- * @param {*} conditions - The object to modify.
- */
-function snipPagination(conditions) {
-	const snipped = {
-		page: conditions._page || 1,
-		limit: conditions._limit, // leave undefined if not paginated
-	}
-	snipped.offset = (snipped.page - 1) * snipped.limit || 0
-	delete conditions._page
-	delete conditions._limit
-	return snipped
 }
 
 // A class which parses an object into a SQL WHERE statement,
