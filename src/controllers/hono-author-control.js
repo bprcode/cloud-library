@@ -15,7 +15,7 @@ const authorIdValidator = validator('param', async (value, c) => {
 		throw new Error('Missing author ID')
 	}
 
-	const author = await authors.find(c.client, {author_id})
+	const [author] = (await authors.find(c.client, {author_id})) ?? []
 
 	if (author) {
 		return {
@@ -24,7 +24,7 @@ const authorIdValidator = validator('param', async (value, c) => {
 		}
 	}
 
-	c.trouble.add('id', 'No book matched ID.')
+	c.trouble.add('id', 'No author matched ID.')
 	return { author_id }
 })
 
