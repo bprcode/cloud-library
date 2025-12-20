@@ -7,6 +7,11 @@ if (process.env.NODE_ENV === 'production') {
 }
 const http = require('http')
 
+// Override the node-postgres conversion of SQL DATEs to JavaScript Dates.
+// For this application, a "due date" is assumed to be in the time zone of
+// the catalog maintainer; we do not want local conversion.
+require('pg').types.setTypeParser(1082, v => v)
+
 // Drop-in replacement for pg-format,
 // which is unsupported on Cloudflare Workers.
 // Does not perform sanitization; must not be used for client input.
@@ -79,36 +84,15 @@ async function clientQuery(client, ...etc) {
 			return null
 		}
 
+		rows.forEach(r => {
+			if(r.due_back) {
+				console.log('due_back:', r.due_back, 'is date?', r.due_back instanceof Date)
+			}
+		})
 		return rows
 	} catch (e) {
 		dbLog('Database client error:', pink, e)
 	}
-}
-
-/**
- * Find all Date objects in a result, and truncate them to YYYY-MM-DD strings.
- * Intended to work around the sometimes-problematic default behavior of pg,
- * wherein dates without timestamps are given "assumed" timestamps.
- * @param {*} source - An object, array of objects, or promise which resolves
- * to an object or array of objects, from which to convert Date objects into
- * date strings.
- */
-async function snipTimes(source) {
-	function snipObject(o) {
-		for (const key in o) {
-			if (o[key] instanceof Date) o[key] = o[key].toISOString().split('T')[0]
-		}
-	}
-
-	const result = await source
-
-	if (Array.isArray(result)) {
-		for (const r of result) snipObject(r)
-	} else {
-		snipObject(result)
-	}
-
-	return result
 }
 
 function paginationOffset(page, limit) {
@@ -453,7 +437,6 @@ async function bookStatusList(client) {
 module.exports = {
 	trigramTitleQuery,
 	trigramAuthorQuery,
-	snipTimes,
 	books,
 	justBooks,
 	authors,

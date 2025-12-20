@@ -118,8 +118,10 @@ Handlebars.registerHelper('pretty-date', (date) => {
 		return date
 	}
 	if (date instanceof Date) {
+		log('Formatting ', '🟦 Date ', blue, date, 'as ', DateTime.fromJSDate(date).toLocaleString(DateTime.DATE_MED))
 		return DateTime.fromJSDate(date).toLocaleString(DateTime.DATE_MED)
 	}
+	log('Formatting ', '🟪 Non-Date ', pink, date, ' as ', DateTime.fromISO(date).toLocaleString(DateTime.DATE_MED))
 	return DateTime.fromISO(date).toLocaleString(DateTime.DATE_MED)
 })
 Handlebars.registerHelper('plural-s', (count) => (count > 1 ? 's' : ''))

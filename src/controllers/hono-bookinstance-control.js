@@ -6,7 +6,6 @@ const {
 	bookInstances,
 	justBooks,
 	bookStatusList,
-	snipTimes,
 } = require('../database.js')
 
 const instanceIdValidator = validator('param', async (value, c) => {
@@ -21,7 +20,7 @@ const instanceIdValidator = validator('param', async (value, c) => {
 		if (!found) {
 			c.trouble.add('id', 'Instance not found.')
 		} else {
-			validated.instance = await snipTimes(found[0])
+			validated.instance = found[0]
 		}
 	}
 

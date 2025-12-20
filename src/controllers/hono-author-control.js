@@ -5,7 +5,6 @@ import { paginate } from './paginator'
 const {
 	authors,
 	books,
-	snipTimes,
 	trigramAuthorQuery,
 } = require('../database.js')
 
@@ -16,8 +15,7 @@ const authorIdValidator = validator('param', async (value, c) => {
 		throw new Error('Missing author ID')
 	}
 
-	const found = await snipTimes(authors.find(c.client, { author_id }))
-	const author = found ? found[0] : null
+	const author = await authors.find(c.client, {author_id})
 
 	if (author) {
 		return {
@@ -120,7 +118,6 @@ export const authorController = {
 			}
 
 			const [authorList, total] = await Promise.all([
-				snipTimes(
 					authors.find(
 						c.client,
 						'full_name',
@@ -132,7 +129,6 @@ export const authorController = {
 							page,
 							limit,
 						}
-					)
 				),
 
 				authors.count(c.client),
