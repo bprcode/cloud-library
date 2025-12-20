@@ -10,7 +10,7 @@ const http = require('http')
 // Override the node-postgres conversion of SQL DATEs to JavaScript Dates.
 // For this application, a "due date" is assumed to be in the time zone of
 // the catalog maintainer; we do not want local conversion.
-require('pg').types.setTypeParser(1082, v => v)
+require('pg').types.setTypeParser(1082, (v) => v)
 
 // Drop-in replacement for pg-format,
 // which is unsupported on Cloudflare Workers.
@@ -110,12 +110,6 @@ class WhereClause {
 
 		let index = 1
 
-		if ('_page' in conditions) {
-			throw new Error('_page is deprecated; where-clause needs revision.')
-		}
-
-		const pagination = snipPagination(conditions)
-
 		this.offset = (conditions.page - 1) * (conditions.limit || 0)
 		this.limit = conditions.limit
 
@@ -126,15 +120,16 @@ class WhereClause {
 			return
 		}
 
-		const dirty =
-			' WHERE ' +
+		const clause =
+			` WHERE ` +
 			Object.keys(conditions)
-				.map((k) =>
-					conditions[k] === null ? '%I IS NULL' : '%I::text ILIKE $' + index++
+				.map((k, i) =>
+					conditions[k] === null ? `${k} IS NULL` : `${k}::text ILIKE $${i + 1}`
 				)
-				.join(' AND ')
+				.join(` AND `)
 
-		this.clause = format(dirty, ...Object.keys(conditions))
+		this.clause = clause
+
 		this._values = Object.values(conditions)
 			.filter((v) => v !== null)
 			.map((v) => String(v))
