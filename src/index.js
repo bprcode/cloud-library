@@ -90,10 +90,7 @@ app
 		})
 	})
 
-// Initialize templating
-const { DateTime } = require('luxon')
-
-// Precompilation templating
+// Precompiled templating
 const Handlebars = require('handlebars/runtime')
 global.Handlebars = Handlebars
 
@@ -114,16 +111,40 @@ Handlebars.registerHelper('pretty-date', (date) => {
 	if (!date) {
 		return ''
 	}
+
+	const [year, month, day] = date.split('-').map(Number)
+	if (!year) {
+		return ''
+	}
+	if (!month) {
+		return String(year)
+	}
+
+	const formattedMonth = new Date(2000, month - 1, 1).toLocaleString('en-US', {
+		month: 'short',
+	})
+
+	if (!day) {
+		return `${formattedMonth} ${year}`
+	}
+
+	return `${formattedMonth} ${day}, ${year}`
+})
+
+Handlebars.registerHelper('pretty-date-old', (date) => {
+	if (!date) {
+		return ''
+	}
 	if (date.match?.(/^\d*$/)) {
 		return date
 	}
 	if (date instanceof Date) {
-		log('Formatting ', '🟦 Date ', blue, date, 'as ', DateTime.fromJSDate(date).toLocaleString(DateTime.DATE_MED))
 		return DateTime.fromJSDate(date).toLocaleString(DateTime.DATE_MED)
 	}
-	log('Formatting ', '🟪 Non-Date ', pink, date, ' as ', DateTime.fromISO(date).toLocaleString(DateTime.DATE_MED))
+
 	return DateTime.fromISO(date).toLocaleString(DateTime.DATE_MED)
 })
+
 Handlebars.registerHelper('plural-s', (count) => (count > 1 ? 's' : ''))
 
 // Helper to use position in iterable to insert a comma, or not:
