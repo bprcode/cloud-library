@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Client Stream Recipient Test</title>
+	</head>
+	<body>
+		<h1>Stream Example</h1>
+    <div style="display: flex;">
+
+      <form id="fetch-form" style="background-color: #ccc; padding: 1rem; max-width: 65ch;">
+        <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem;">
+  
+          <label>
+            Fetch URL
+            <input id="fetch-url" value="http://localhost:8787" style="padding: 1rem" />
+          </label>
+          <label>
+            Request Type
+            <input id="request-type" value="bio" style="padding: 1rem" />
+          </label>
+          <label>
+            Author Name
+            <input id="author-input" value="Ernest Hemingway" style="padding: 1rem" />
+          </label>
+          <label>
+            Book Title
+            <input id="title-input" value="The Old Man and the Sea" style="padding: 1rem" />
+          </label>
+        </div>
+        <button style="padding: 1rem">Start streaming</button>
+  
+      </form>
+      <pre id="response" style="white-space: pre-wrap; overflow-wrap: break-word; background-color: #333; padding: 1rem; color: #eee; margin: 2rem; width: 65ch"></pre>
+    </div>
+	</body>
+</html>
+<script>
+	document.getElementById('fetch-form').addEventListener('submit', (event) => {
+		event.preventDefault()
+		startStream()
+	})
+
+	function preLog(message) {
+		document.getElementById('response').textContent += message
+	}
+
+	function startStream() {
+		document.getElementById('response').textContent = ''
+
+		let packet = 0
+		const url = document.getElementById('fetch-url')?.value
+
+		const requestType = document.getElementById('request-type').value
+		const author = document.getElementById('author-input').value
+		const title = document.getElementById('title-input').value
+		let query = `type=${requestType}`
+		if (author.length > 0) {
+			query += `&author=${author}`
+		}
+		if (title.length > 0) {
+			query += `&title=${title}`
+		}
+
+		const source = new EventSource(`${url}?${query}`)
+
+		source.onmessage = (event) => {
+			packet++
+			console.log('Received packet ', packet)
+
+			if (event.data === '[DONE]') {
+				source.close()
+				preLog('Closed stream deliberately.')
+				return
+			}
+
+			const data = JSON.parse(event.data)
+			if (data.usage) {
+				preLog(`\n💲usage: ${JSON.stringify(data.usage)}`)
+				return
+			}
+
+			console.log(data)
+			preLog(data.response ?? '🛑 No response in data?')
+		}
+
+		source.addEventListener('error', (error) => {
+			preLog('🤔 Ready state: ' + source.readyState + ' ...')
+			console.error(error)
+			preLog('⚠️ an error occurred while streaming')
+			source.close()
+		})
+	}
+</script>
