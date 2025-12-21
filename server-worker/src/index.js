@@ -64,8 +64,11 @@ app
 	})
 	.route('/catalog', honoCatalogRouter)
 	.route('/reset', honoResetRouter)
+	.get('/bookbot', (c) => {
+		return c.text(c.env.BOOKBOT_URL)
+	})
 	.get('/env', (c) => {
-		return c.text(`Environment is: ${process.env.NODE_ENV}`)
+		return c.text(`Environment is: ${process.env.NODE_ENV}.`)
 	})
 	.all('*', (c) => {
 		return c.render(

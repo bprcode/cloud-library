@@ -216,12 +216,12 @@ Handlebars.partials['book_form_body'] = template({"1":function(container,depth0,
     + alias3(alias4(((stack1 = (depth0 != null ? lookupProperty(depth0,"populate") : depth0)) != null ? lookupProperty(stack1,"isbn") : stack1), depth0))
     + "\">\n            <div class=\"invalid-feedback\">"
     + alias3((lookupProperty(helpers,"error-check")||(depth0 && lookupProperty(depth0,"error-check"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"trouble") : depth0),"isbn",{"name":"error-check","hash":{},"data":data,"loc":{"start":{"line":33,"column":42},"end":{"line":33,"column":72}}}))
-    + "</div>\n        </div>\n    </div>\n\n    <div class=\"row mb-3\">\n        <label for=\"summary-id\" class=\"col-form-label col-sm-3\">Summary</label>\n        <div class=\"col input-group-has-validation\">\n            <textarea class=\"form-control "
+    + "</div>\n        </div>\n    </div>\n\n    <div class=\"row mb-3\">\n        <label for=\"summary-id\" class=\"col-form-label col-sm-3\">Summary</label>\n        <div class=\"col input-group-has-validation\" id=\"summary-container\">\n            <textarea class=\"form-control "
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(lookupProperty(helpers,"error-check")||(depth0 && lookupProperty(depth0,"error-check"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"trouble") : depth0),"summary",{"name":"error-check","hash":{},"data":data,"loc":{"start":{"line":40,"column":48},"end":{"line":40,"column":79}}}),{"name":"if","hash":{},"fn":container.program(3, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":40,"column":42},"end":{"line":40,"column":98}}})) != null ? stack1 : "")
     + "\" id=\"summary-id\" name=\"summary\" type=\"text\" rows=\"4\">"
     + alias3(alias4(((stack1 = (depth0 != null ? lookupProperty(depth0,"populate") : depth0)) != null ? lookupProperty(stack1,"summary") : stack1), depth0))
-    + "</textarea>\n            <div class=\"invalid-feedback\">"
-    + alias3((lookupProperty(helpers,"error-check")||(depth0 && lookupProperty(depth0,"error-check"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"trouble") : depth0),"summary",{"name":"error-check","hash":{},"data":data,"loc":{"start":{"line":41,"column":42},"end":{"line":41,"column":75}}}))
+    + "</textarea>\n            <div class=\"invalid-feedback\" id=\"summary-errors\">"
+    + alias3((lookupProperty(helpers,"error-check")||(depth0 && lookupProperty(depth0,"error-check"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"trouble") : depth0),"summary",{"name":"error-check","hash":{},"data":data,"loc":{"start":{"line":41,"column":62},"end":{"line":41,"column":95}}}))
     + "</div>\n        </div>\n    </div>\n\n\n    "
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"condense") : depth0),{"name":"if","hash":{},"fn":container.program(11, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":46,"column":4},"end":{"line":46,"column":80}}})) != null ? stack1 : "")
     + "\n    <div class=\"row mb-3\">\n        <label for=\"genre-checkboxes\" class=\"col-form-label col-sm-3\">Genres</label>\n        <div class=\"col d-flex flex-wrap justify-content-between\">\n"
@@ -232,7 +232,7 @@ Handlebars.partials['book_form_body'] = template({"1":function(container,depth0,
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"condense") : depth0),{"name":"if","hash":{},"fn":container.program(19, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":73,"column":4},"end":{"line":73,"column":37}}})) != null ? stack1 : "")
     + "\n\n"
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"submit") : depth0),{"name":"if","hash":{},"fn":container.program(21, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":75,"column":4},"end":{"line":79,"column":11}}})) != null ? stack1 : "")
-    + "</form>\n";
+    + "</form>\n\n<script type=\"module\">\nimport {attachSummarizer} from '/attach-bookbot.js'\nattachSummarizer()\n</script>\n";
 },"useData":true,"useDepths":true});
 Handlebars.partials['pagination_footer'] = template({"1":function(container,depth0,helpers,partials,data) {
     return "";
