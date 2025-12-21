@@ -101,6 +101,10 @@ export default {
 			top_p: 0.85,
 			presence_penalty: 0.1,
 			frequency_penalty: 0.1,
+		}, {
+			gateway: {
+				id: 'bookbot-gateway'
+			}
 		})
 
 		return goodStream(stream)
