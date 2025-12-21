@@ -230,26 +230,17 @@ class Model {
 	update(client, replace, where) {
 		this.verifyClient(client)
 
-		let clean = ``
-		let dirty = `UPDATE ${this.relation} SET `
 		const whereClause = WhereClause.from(where)
 		// Where-clause indices come first,
 		// followed by replace-value indices:
-		let i = whereClause.values.length + 1
+		const i0 = whereClause.values.length + 1
 
-		dirty += Object.keys(replace)
-			.map((_) => `%I = $` + i++)
-			.join(', ')
+		const values = Object.keys(replace).map((column, i) => `${column} = $${i + i0}`).join(', ')
+		const statement = `UPDATE ${this.relation} `+`SET ${values}${whereClause} RETURNING *`
 
-		dirty += whereClause
-		dirty += ` RETURNING *`
+		dbLog(statement, blue)
 
-		clean = format(dirty, ...Object.keys(replace))
-
-		dbLog(dirty, yellow)
-		dbLog(clean, blue)
-
-		return clientQuery(client, clean, [
+		return clientQuery(client, statement, [
 			...whereClause.values,
 			...Object.values(replace),
 		])
