@@ -32,7 +32,10 @@
         <button style="padding: 1rem">Start streaming</button>
   
       </form>
-      <pre id="response" style="white-space: pre-wrap; overflow-wrap: break-word; background-color: #333; padding: 1rem; color: #eee; margin: 2rem; width: 65ch"></pre>
+      <div style="margin-left: 1rem; max-width: 65ch;">
+        <pre id="response" style="white-space: pre-wrap; overflow-wrap: break-word; background-color: #333; padding: 1rem; color: #eee;"></pre>
+        <div id="usage" style="background-color: #eee; color: #333; padding: 1rem;"></div>
+      </div>
     </div>
 	</body>
 </html>
@@ -47,6 +50,7 @@
 	}
 
 	function startStream() {
+    document.getElementById('usage').textContent = ''
 		document.getElementById('response').textContent = ''
 
 		let packet = 0
@@ -76,8 +80,15 @@
 			}
 
 			const data = JSON.parse(event.data)
+
+      if(data.error) {
+        preLog(`👋 an in-band error was detected: ${data.error}`)
+        source.close()
+        return
+      }
+
 			if (data.usage) {
-				preLog(`\n💲usage: ${JSON.stringify(data.usage)}`)
+        document.getElementById('usage').textContent = JSON.stringify(data.usage)
 				return
 			}
 
