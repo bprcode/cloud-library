@@ -12,17 +12,6 @@ const http = require('http')
 // the catalog maintainer; we do not want local conversion.
 require('pg').types.setTypeParser(1082, (v) => v)
 
-// Drop-in replacement for pg-format,
-// which is unsupported on Cloudflare Workers.
-// Does not perform sanitization; must not be used for client input.
-function format(query, ...args) {
-	for (const replacement of args) {
-		query = query.replace('%I', replacement)
-	}
-
-	return query
-}
-
 async function trigramAuthorQuery(client, fuzzy) {
 	await client.query('BEGIN')
 	await client.query(`SET LOCAL pg_trgm.similarity_threshold = 0.05`)
@@ -235,8 +224,11 @@ class Model {
 		// followed by replace-value indices:
 		const i0 = whereClause.values.length + 1
 
-		const values = Object.keys(replace).map((column, i) => `${column} = $${i + i0}`).join(', ')
-		const statement = `UPDATE ${this.relation} `+`SET ${values}${whereClause} RETURNING *`
+		const values = Object.keys(replace)
+			.map((column, i) => `${column} = $${i + i0}`)
+			.join(', ')
+		const statement =
+			`UPDATE ${this.relation} ` + `SET ${values}${whereClause} RETURNING *`
 
 		dbLog(statement, blue)
 
@@ -254,15 +246,15 @@ class Model {
 	find(client, ...etc) {
 		this.verifyClient(client)
 
-		let clean = ``
-		let dirty = `SELECT * FROM ${this.relation}`
+		let equivalent = `SELECT * FROM ${this.relation}`
+
 		let where = null
 		const parameters = []
 
 		if (etc.length === 0) {
-			dirty += this.orderClause
-			dbLog(dirty, yellow)
-			return clientQuery(client, dirty) // Nothing to sanitize
+			equivalent += this.orderClause
+			dbLog(equivalent, yellow)
+			return clientQuery(client, equivalent)
 		}
 		// Otherwise...
 		if (typeof etc.at(-1) === 'object') {
@@ -271,36 +263,29 @@ class Model {
 		}
 
 		if (etc.length > 0) {
-			dirty =
-				`SELECT ` +
-				Array(etc.length).fill(`%I`).join(`, `) +
-				` FROM ${this.relation}`
+
+			const columns = etc.join(', ')
+			equivalent = `SELECT ${columns} FROM ${this.relation}`
 		}
 
-		dirty += where ?? ''
-		dirty += this.orderClause
+		equivalent += where ?? ''
+		equivalent += this.orderClause
 
 		if (where) {
 			parameters.push(...where.values)
 		}
 		if (where?.limit) {
 			// Use the DB parser to inject parameters
-			dirty +=
+			equivalent +=
 				' LIMIT $' + (where.length + 1) + ' OFFSET $' + (where.length + 2)
 
 			parameters.push(where.limit, where.offset)
 		}
 
-		clean = format(
-			dirty,
-			...etc, // column names
-			this.order
-		)
-
-		dbLog(clean, blue)
+		dbLog(equivalent, blue)
 		dbLog('parameters: ', dim, parameters)
 
-		return clientQuery(client, clean, parameters)
+		return clientQuery(client, equivalent, parameters)
 	}
 
 	join(other, key) {
@@ -320,10 +305,9 @@ class Model {
 
 	get orderClause() {
 		if (!this.order) return ''
-		let dirty =
-			` ORDER BY ` + Array(this.order.split(', ').length).fill('%I').join(', ')
-		let clean = format(dirty, ...this.order.split(', '))
-		return clean
+
+		const clause = ` ORDER BY ${this.order}`
+		return clause
 	}
 }
 
