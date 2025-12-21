@@ -1,8 +1,35 @@
 const { Client } = require('pg')
 require('@bprcode/handy')
-let dbLog = log
+
+let dbLog = (...args) => {
+	if (args.length > 1) {
+		log(...args)
+		return
+	}
+	if (typeof args[0] !== 'string') {
+		log(...args)
+		return
+	}
+
+	const words = args[0].split(' ')
+	const segments = []
+
+	for (const w of words) {
+		if (w === w.toLocaleUpperCase()) {
+			segments.push(w)
+			segments.push(blue)
+		} else {
+			segments.push(w)
+			segments.push(dim)
+		}
+		segments.push(' ')
+	}
+
+	log(...segments)
+}
+
+// Silence database logs in production:
 if (process.env.NODE_ENV === 'production') {
-	dbLog('Silencing database logs in production.', blue)
 	dbLog = (_) => {}
 }
 const http = require('http')
@@ -129,8 +156,6 @@ class WhereClause {
 	}
 
 	get values() {
-		this._values.length &&
-			dbLog(' values: ', pink, this._values.join(', '), green)
 		return this._values
 	}
 
@@ -177,7 +202,7 @@ class Model {
 		const sql = `SELECT count(*) FROM ${this.relation}`
 		const where = WhereClause.from(conditions)
 
-		dbLog(sql, green)
+		dbLog(sql)
 		const result = await clientQuery(client, sql + where, where.values)
 		return result[0].count
 	}
@@ -191,7 +216,7 @@ class Model {
 		const where = WhereClause.from(conditions)
 		const sql = `DELETE FROM ${this.relation} ${where} RETURNING *`
 
-		dbLog(sql, pink)
+		dbLog(sql)
 		return clientQuery(client, sql, where.values)
 	}
 
@@ -230,7 +255,7 @@ class Model {
 		const statement =
 			`UPDATE ${this.relation} ` + `SET ${values}${whereClause} RETURNING *`
 
-		dbLog(statement, blue)
+		dbLog(statement)
 
 		return clientQuery(client, statement, [
 			...whereClause.values,
@@ -246,15 +271,15 @@ class Model {
 	find(client, ...etc) {
 		this.verifyClient(client)
 
-		let equivalent = `SELECT * FROM ${this.relation}`
+		let query = `SELECT * FROM ${this.relation}`
 
 		let where = null
 		const parameters = []
 
 		if (etc.length === 0) {
-			equivalent += this.orderClause
-			dbLog(equivalent, yellow)
-			return clientQuery(client, equivalent)
+			query += this.orderClause
+			dbLog(query)
+			return clientQuery(client, query)
 		}
 		// Otherwise...
 		if (typeof etc.at(-1) === 'object') {
@@ -263,29 +288,28 @@ class Model {
 		}
 
 		if (etc.length > 0) {
-
 			const columns = etc.join(', ')
-			equivalent = `SELECT ${columns} FROM ${this.relation}`
+			query = `SELECT ${columns} FROM ${this.relation}`
 		}
 
-		equivalent += where ?? ''
-		equivalent += this.orderClause
+		query += where ?? ''
+		query += this.orderClause
 
 		if (where) {
 			parameters.push(...where.values)
 		}
 		if (where?.limit) {
 			// Use the DB parser to inject parameters
-			equivalent +=
+			query +=
 				' LIMIT $' + (where.length + 1) + ' OFFSET $' + (where.length + 2)
 
 			parameters.push(where.limit, where.offset)
 		}
 
-		dbLog(equivalent, blue)
+		dbLog(query)
 		dbLog('parameters: ', dim, parameters)
 
-		return clientQuery(client, equivalent, parameters)
+		return clientQuery(client, query, parameters)
 	}
 
 	join(other, key) {
