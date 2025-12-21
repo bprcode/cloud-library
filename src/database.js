@@ -168,7 +168,6 @@ class Model {
 
 	verifyClient(client) {
 		if (!client || !(client instanceof Client)) {
-			log('Missing valid query client for ', pink, this.table)
 			throw new Error(`Invalid query client for table ${this.table}`)
 		}
 	}
@@ -201,7 +200,7 @@ class Model {
 			throw new Error(`No WHERE-parameters specified for DELETE.`)
 
 		const where = WhereClause.from(conditions)
-		const sql = `DELETE FROM ${this.relation} ${where}` + ` RETURNING *`
+		const sql = `DELETE FROM ${this.relation} ${where} RETURNING *`
 
 		dbLog(sql, pink)
 		return clientQuery(client, sql, where.values)
@@ -210,21 +209,15 @@ class Model {
 	insert(client, item) {
 		this.verifyClient(client)
 
-		let clean = ``
-		let dirty =
-			`INSERT INTO ${this.relation} (` +
-			Array(Object.keys(item).length).fill('%I').join(', ') +
-			`) VALUES (` +
-			Object.values(item)
-				.map((_, i) => `$` + (i + 1))
-				.join(', ') +
-			`) RETURNING *`
+		const columns = Object.keys(item).join(', ')
+		const values = Object.values(item)
+			.map((_, i) => `$${i + 1}`)
+			.join(', ')
+		const statement =
+			`INSERT INTO ${this.relation} (${columns}) ` +
+			`VALUES (${values}) RETURNING *`
 
-		dbLog(dirty, yellow)
-		clean = format(dirty, ...Object.keys(item))
-		dbLog(clean, blue)
-
-		return clientQuery(client, clean, Object.values(item))
+		return clientQuery(client, statement, Object.values(item))
 	}
 
 	/**
