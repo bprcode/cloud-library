@@ -2,7 +2,7 @@ import { bookController } from '../controllers/hono-book-control'
 import { genreController } from '../controllers/hono-genre-control'
 import { authorController } from '../controllers/hono-author-control'
 import { bookinstanceController } from '../controllers/hono-bookinstance-control'
-import { Hono } from 'hono'
+import { Hono } from 'hono/quick'
 
 export const honoCatalogRouter = new Hono()
 

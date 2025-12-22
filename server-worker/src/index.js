@@ -1,4 +1,4 @@
-import { Hono } from 'hono'
+import { Hono } from 'hono/quick'
 import { honoCatalogRouter } from './routes/hono-catalog-route.js'
 import { honoResetRouter } from './routes/hono-reset-route.js'
 import { HTTPException } from 'hono/http-exception'
