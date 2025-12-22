@@ -1,4 +1,4 @@
-# Archivia
+# Archivia (serverless version)
 
 Archivia is a mock library catalog, implemented as a full-stack web service. Users can search a catalog of available books by title, subject, or author; update the status of inventory; and add or import metadata from real-world library databases.
 
