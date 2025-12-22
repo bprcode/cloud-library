@@ -6,6 +6,7 @@ const {
 	booksByGenre,
 	bookGenres,
 	justBooks,
+	genresWithIds,
 } = require('../database.js')
 
 const genreIdValidator = validator('param', async (value, c) => {
@@ -279,4 +280,9 @@ export const genreController = {
 			}
 		},
 	],
+
+	async genres_with_ids(c) {
+		const result = await genresWithIds(c.client)
+		return c.json(result)
+	},
 }

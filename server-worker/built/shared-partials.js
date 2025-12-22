@@ -190,6 +190,17 @@ Handlebars.partials['book_form_body'] = template({"1":function(container,depth0,
   return "    <div class=\"d-flex justify-content-end\">\n    <button class=\"btn btn-primary fw-semibold\" type=\"submit\">"
     + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"submit") || (depth0 != null ? lookupProperty(depth0,"submit") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"submit","hash":{},"data":data,"loc":{"start":{"line":77,"column":62},"end":{"line":77,"column":72}}}) : helper)))
     + "</button>\n    </div>\n";
+},"23":function(container,depth0,helpers,partials,data) {
+    var helper, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return "    "
+    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"genre_id") || (depth0 != null ? lookupProperty(depth0,"genre_id") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"genre_id","hash":{},"data":data,"loc":{"start":{"line":89,"column":4},"end":{"line":89,"column":16}}}) : helper)))
+    + ",\n";
 },"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data,blockParams,depths) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3=container.escapeExpression, alias4=container.lambda, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
@@ -224,7 +235,7 @@ Handlebars.partials['book_form_body'] = template({"1":function(container,depth0,
     + alias3((lookupProperty(helpers,"error-check")||(depth0 && lookupProperty(depth0,"error-check"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"trouble") : depth0),"summary",{"name":"error-check","hash":{},"data":data,"loc":{"start":{"line":41,"column":62},"end":{"line":41,"column":95}}}))
     + "</div>\n        </div>\n    </div>\n\n\n    "
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"condense") : depth0),{"name":"if","hash":{},"fn":container.program(11, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":46,"column":4},"end":{"line":46,"column":80}}})) != null ? stack1 : "")
-    + "\n    <div class=\"row mb-3\">\n        <label for=\"genre-checkboxes\" class=\"col-form-label col-sm-3\">Genres</label>\n        <div class=\"col d-flex flex-wrap justify-content-between\">\n"
+    + "\n    <div class=\"row mb-3\">\n        <label for=\"genre-checkboxes\" class=\"col-form-label col-sm-3\">Genres</label>\n        <div class=\"col d-flex flex-wrap justify-content-between\" id=\"genre-checkboxes-container\">\n"
     + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"genres") : depth0),{"name":"each","hash":{},"fn":container.program(13, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":50,"column":12},"end":{"line":55,"column":21}}})) != null ? stack1 : "")
     + "        </div>\n    </div>\n\n"
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"suggestions") : depth0),{"name":"if","hash":{},"fn":container.program(16, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":59,"column":4},"end":{"line":71,"column":11}}})) != null ? stack1 : "")
@@ -232,7 +243,11 @@ Handlebars.partials['book_form_body'] = template({"1":function(container,depth0,
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"condense") : depth0),{"name":"if","hash":{},"fn":container.program(19, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":73,"column":4},"end":{"line":73,"column":37}}})) != null ? stack1 : "")
     + "\n\n"
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"submit") : depth0),{"name":"if","hash":{},"fn":container.program(21, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":75,"column":4},"end":{"line":79,"column":11}}})) != null ? stack1 : "")
-    + "</form>\n\n<script type=\"module\">\nimport {attachSummarizer} from '/attach-bookbot.js'\nattachSummarizer()\n</script>\n";
+    + "</form>\n\n<script type=\"module\">\n\nimport {attachSummarizer} from '/attach-bookbot.js'\nimport {populateAuthorIds, populateGenreCheckboxes} from '/attach-author-genre-data.js'\n\nconst genreCheckList = [\n"
+    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"genreChecks") : depth0),{"name":"each","hash":{},"fn":container.program(23, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":88,"column":4},"end":{"line":90,"column":13}}})) != null ? stack1 : "")
+    + "]\n\nattachSummarizer()\npopulateAuthorIds("
+    + alias3(alias4(((stack1 = (depth0 != null ? lookupProperty(depth0,"populate") : depth0)) != null ? lookupProperty(stack1,"author_id") : stack1), depth0))
+    + ")\npopulateGenreCheckboxes(new Set(genreCheckList))\n\n</script>\n";
 },"useData":true,"useDepths":true});
 Handlebars.partials['pagination_footer'] = template({"1":function(container,depth0,helpers,partials,data) {
     return "";

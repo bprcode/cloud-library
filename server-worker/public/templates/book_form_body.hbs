@@ -46,7 +46,7 @@
     {{#if condense}}<details><summary><small>Categories</small></summary>{{/if}}
     <div class="row mb-3">
         <label for="genre-checkboxes" class="col-form-label col-sm-3">Genres</label>
-        <div class="col d-flex flex-wrap justify-content-between">
+        <div class="col d-flex flex-wrap justify-content-between" id="genre-checkboxes-container">
             {{#each genres}}
             <div class="form-check min-tiny">
                 <input type="checkbox" class="form-check-input" name="genre-{{genre_id}}" id="cb-{{genre_id}}" {{#if (find-in ../genreChecks 'genre_id' genre_id)}}checked{{/if}}>
@@ -80,6 +80,18 @@
 </form>
 
 <script type="module">
+
 import {attachSummarizer} from '/attach-bookbot.js'
+import {populateAuthorIds, populateGenreCheckboxes} from '/attach-author-genre-data.js'
+
+const genreCheckList = [
+    {{#each genreChecks}}
+    {{genre_id}},
+    {{/each}}
+]
+
 attachSummarizer()
+populateAuthorIds({{populate.author_id}})
+populateGenreCheckboxes(new Set(genreCheckList))
+
 </script>

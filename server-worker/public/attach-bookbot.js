@@ -147,7 +147,6 @@ async function requestBio() {
 				firstPacket = false
 				bio.value = ''
 			}
-			console.log('data', data)
 			bio.value += data.response
 		}
 	})

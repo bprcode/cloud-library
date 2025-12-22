@@ -39,6 +39,30 @@ const http = require('http')
 // the catalog maintainer; we do not want local conversion.
 require('pg').types.setTypeParser(1082, (v) => v)
 
+async function authorsWithIds(client) {
+	const result = await client.query(
+		`
+			SELECT first_name, last_name, author_id
+			FROM lib.authors
+			ORDER BY last_name
+		`
+	)
+
+	return result.rows
+}
+
+async function genresWithIds(client) {
+	const result = await client.query(
+		`
+			SELECT genre_id, name
+			FROM lib.genres
+			ORDER BY name
+		`
+	)
+
+	return result.rows
+}
+
 async function trigramAuthorQuery(client, fuzzy) {
 	await client.query('BEGIN')
 	await client.query(`SET LOCAL pg_trgm.similarity_threshold = 0.05`)
@@ -401,6 +425,8 @@ async function bookStatusList(client) {
 }
 
 module.exports = {
+	authorsWithIds,
+	genresWithIds,
 	trigramTitleQuery,
 	trigramAuthorQuery,
 	books,

@@ -29,6 +29,7 @@ honoCatalogRouter
 	.post('/author/:id/update', ...authorController.author_update_post)
 	.get('/author/:id', ...authorController.author_detail)
 	.get('/authors', ...authorController.author_list)
+	.get('/authors/ids', authorController.authors_with_ids)
 
 	.post('/genre/associate/json', ...genreController.associate_json_post)
 	.get('/genre/json', genreController.genre_json_get)
@@ -41,6 +42,7 @@ honoCatalogRouter
 	.post('/genre/:id/update', ...genreController.genre_update_post)
 	.get('/genre/:id', genreController.genre_detail)
 	.get('/genres', ...genreController.genre_list)
+	.get('/genres/ids', genreController.genres_with_ids)
 
 	// Duplicate registrations for route aliases
 	// Create by id:

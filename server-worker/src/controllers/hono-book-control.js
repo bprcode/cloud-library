@@ -9,6 +9,7 @@ const {
 	spotlightWorks,
 	suggestions,
 	trigramTitleQuery,
+	authorsWithIds,
 } = require('../database.js')
 import {paginate} from './paginator'
 import { Client } from 'pg'
@@ -203,20 +204,18 @@ export const bookController = {
 			}
 			const { book_id, book } = c.req.valid('param')
 
-			const [genreList, authorList, genreChecks] = await Promise.all([
-				genres.find(c.client),
-				authors.find(c.client),
+			const [genreChecks] = await Promise.all([
 				genresByBook.find(c.client, { book_id }),
 			])
 
 			return c.render(`book_form.hbs`, {
-				genres: genreList,
-				authors: authorList,
+				genres: [],
+				authors: [],
 				title: 'Edit Book',
 				form_action: undefined,
 				submit: 'Save Changes',
 				populate: book,
-				genreChecks: genreChecks,
+				genreChecks,
 			})
 		},
 	],

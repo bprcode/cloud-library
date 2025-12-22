@@ -6,6 +6,7 @@ const {
 	authors,
 	books,
 	trigramAuthorQuery,
+	authorsWithIds,
 } = require('../database.js')
 
 const authorIdValidator = validator('param', async (value, c) => {
@@ -143,6 +144,11 @@ export const authorController = {
 			})
 		},
 	],
+
+	async authors_with_ids(c) {
+		const list = await authorsWithIds(c.client)
+		return c.json(list)
+	},
 
 	author_detail: [
 		authorIdValidator,
