@@ -37,7 +37,7 @@
     <div class="row mb-3">
         <label for="summary-id" class="col-form-label col-sm-3">Summary</label>
         <div class="col input-group-has-validation" id="summary-container">
-            <textarea class="form-control {{#if (error-check trouble 'summary')}}is-invalid{{/if}}" id="summary-id" name="summary" type="text" rows="4">{{populate.summary}}</textarea>
+            <textarea rows="10" class="form-control {{#if (error-check trouble 'summary')}}is-invalid{{/if}}" id="summary-id" name="summary" type="text" rows="4">{{populate.summary}}</textarea>
             <div class="invalid-feedback" id="summary-errors">{{error-check trouble 'summary'}}</div>
         </div>
     </div>

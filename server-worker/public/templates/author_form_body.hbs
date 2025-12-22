@@ -47,8 +47,9 @@
 
     <div class="row mb-3">
         <label for="bio-id" class="col-form-label col-sm-4">Biography</label>
-        <div class="col input-group">
+        <div class="col input-group-has-validation" id="bio-container">
             <textarea name="bio" id="bio-id" cols="30" rows="10" class="form-control">{{author.bio}}</textarea>
+            <div class="invalid-feedback" id="bio-errors"></div>
         </div>
     </div>
 
@@ -60,3 +61,8 @@
     </div>
     {{/if}}
 </form>
+
+<script type="module">
+import {attachSummarizer} from '/attach-bookbot.js'
+attachSummarizer()
+</script>
