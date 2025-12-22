@@ -2,76 +2,26 @@ import { Hono } from 'hono'
 import { honoCatalogRouter } from './routes/hono-catalog-route.js'
 import { honoResetRouter } from './routes/hono-reset-route.js'
 import { HTTPException } from 'hono/http-exception'
-import { Trouble } from './validation/Trouble.js'
+import {
+	injectQueryClientLifecycle,
+	injectRenderMethod,
+	injectTroubleObject,
+} from './middleware/hono-middleware.js'
 require('@bprcode/handy')
-const { Client } = require('pg')
 
 const app = new Hono({ strict: false })
 
 app
-	// Add a render method
-	.use((c, next) => {
-		c.render = (template, options, status = 200) => {
-			const templateName = template.split('.')[0]
-
-			if (!Handlebars) {
-				throw new Error('Handlebars not defined.')
-			}
-			if (!Handlebars.templates) {
-				throw new Error('Handlebars.templates not defined.')
-			}
-
-			if (!(templateName in Handlebars.templates)) {
-				throw new Error(`${template} not found in templates`)
-			}
-
-			const html = Handlebars.templates[templateName](options)
-
-			return c.html(html, status)
-		}
-
-		return next()
-	})
-	// Add an error-tracking object (mimic express-validator's interface.)
-	.use((c, next) => {
-		c.trouble = new Trouble()
-
-		return next()
-	})
-	// Add a complete per-response query client lifecycle.
-	.use(async (c, next) => {
-		c.connectionString =
-			process.env.NODE_ENV !== 'production'
-				? process.env.CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE
-				: c.env.HYPERDRIVE?.connectionString
-
-		const client = new Client({ connectionString: c.connectionString })
-		await client.connect()
-		c.client = client
-
-		try {
-			await next()
-		} finally {
-			c.executionCtx.waitUntil(
-				(async () => {
-					await client.end()
-				})()
-			)
-		}
-	})
-	.get('/', (c) => {
-		return c.redirect('/catalog')
-	})
+	.use(injectRenderMethod)
+	.use(injectTroubleObject)
+	.use(injectQueryClientLifecycle)
+	.get('/', (c) => c.redirect('/catalog'))
 	.route('/catalog', honoCatalogRouter)
 	.route('/reset', honoResetRouter)
-	.get('/bookbot', (c) => {
-		return c.text(c.env.BOOKBOT_URL)
-	})
-	.get('/env', (c) => {
-		return c.text(`Environment is: ${process.env.NODE_ENV}.`)
-	})
-	.all('*', (c) => {
-		return c.render(
+	.get('/bookbot', (c) => c.text(c.env.BOOKBOT_URL))
+	.get('/env', (c) => c.text(`Environment is: ${process.env.NODE_ENV}.`))
+	.all('*', (c) =>
+		c.render(
 			'error.hbs',
 			{
 				title: 'Not Found',
@@ -80,7 +30,7 @@ app
 			},
 			404
 		)
-	})
+	)
 	.onError((err, c) => {
 		c.status(err instanceof HTTPException ? err.status : 500)
 
@@ -93,7 +43,7 @@ app
 		})
 	})
 
-// Precompiled templating
+// Initialize precompiled templating
 const Handlebars = require('handlebars/runtime')
 global.Handlebars = Handlebars
 
