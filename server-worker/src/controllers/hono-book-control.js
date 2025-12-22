@@ -10,6 +10,7 @@ const {
 	suggestions,
 	trigramTitleQuery,
 	authorsWithIds,
+	booksWithIds,
 } = require('../database.js')
 import {paginate} from './paginator'
 import { Client } from 'pg'
@@ -312,14 +313,8 @@ export const bookController = {
 	],
 
 	async book_create_get(c) {
-		const [genreLabels, authorLabels] = await Promise.all([
-			genres.find(c.client),
-			authors.find(c.client),
-		])
-
 		return c.render(`book_form.hbs`, {
-			genres: genreLabels,
-			authors: authorLabels,
+			populate: {author_id: -1},
 			title: 'Add Book',
 			form_action: '/catalog/book/create',
 			submit: 'Create',
@@ -422,6 +417,11 @@ export const bookController = {
 			return c.json(result[0], { status: 201 })
 		},
 	],
+
+	async books_with_ids(c) {
+		const list = await booksWithIds(c.client)
+		return c.json(list)
+	},
 }
 
 async function suggestBook(connectionString, title, author, book_id) {

@@ -11,7 +11,6 @@
                 <div class="col input-group-has-validation">
                     <select class="form-select {{#if (error-check trouble 'book_id')}}is-invalid{{/if}}" name="book_id" id="title-id">
                         <option value="default">Select title...</option>
-                        {{#each bookList}}<option value="{{book_id}}" {{#if (match-string book_id ../populate.book_id)}}selected{{/if}}>{{title}}</option>{{/each}}
                     </select>
                     <div class="invalid-feedback">{{error-check trouble 'book_id'}}</div>
                 </div>
@@ -50,4 +49,13 @@
         </form>
     </div>
 </div>
+
+<script type="module">
+
+import {populateInventoryTitleSelect} from '/attach-tables.js'
+
+populateInventoryTitleSelect({{populate.book_id}})
+
+</script>
+
 {{~/inline}}{{/catalog_layout}}

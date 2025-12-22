@@ -10,6 +10,37 @@ async function fetchGenreIds() {
 	return list
 }
 
+async function fetchBookIds() {
+	const response = await fetch('/catalog/books/ids')
+	const list = await response.json()
+	return list
+}
+
+export async function populateInventoryTitleSelect(selectedId) {
+	const select = document.getElementById('title-id')
+
+	if (!select) {
+		console.error('Inventory page missing select object.')
+		return
+	}
+
+	if (select.options.length > 1) {
+		console.error('Select already populated.')
+		return
+	}
+
+	const books = await fetchBookIds()
+
+	for (const b of books) {
+		const option = new Option(b.title, b.book_id)
+		select.add(option)
+	}
+
+	if(selectedId !== undefined) {
+		select.value = selectedId
+	}
+}
+
 export async function populateAuthorIds(selectedId) {
 	const select = document.getElementById('select-author-id')
 

@@ -617,51 +617,34 @@ templates['bookinstance_form'] = template({"1":function(container,depth0,helpers
     + alias4(((helper = (helper = lookupProperty(helpers,"form_action") || (depth0 != null ? lookupProperty(depth0,"form_action") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"form_action","hash":{},"data":data,"loc":{"start":{"line":7,"column":35},"end":{"line":7,"column":50}}}) : helper)))
     + "\" method=\"POST\">\n            \n            <div class=\"row mb-3\">\n                <label for=\"title-id\" class=\"col-form-label col-sm-3\">Title</label>\n                <div class=\"col input-group-has-validation\">\n                    <select class=\"form-select "
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(lookupProperty(helpers,"error-check")||(depth0 && lookupProperty(depth0,"error-check"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"trouble") : depth0),"book_id",{"name":"error-check","hash":{},"data":data,"loc":{"start":{"line":12,"column":53},"end":{"line":12,"column":84}}}),{"name":"if","hash":{},"fn":container.program(3, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":12,"column":47},"end":{"line":12,"column":103}}})) != null ? stack1 : "")
-    + "\" name=\"book_id\" id=\"title-id\">\n                        <option value=\"default\">Select title...</option>\n                        "
-    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"bookList") : depth0),{"name":"each","hash":{},"fn":container.program(5, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":14,"column":24},"end":{"line":14,"column":163}}})) != null ? stack1 : "")
-    + "\n                    </select>\n                    <div class=\"invalid-feedback\">"
-    + alias4((lookupProperty(helpers,"error-check")||(depth0 && lookupProperty(depth0,"error-check"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"trouble") : depth0),"book_id",{"name":"error-check","hash":{},"data":data,"loc":{"start":{"line":16,"column":50},"end":{"line":16,"column":83}}}))
+    + "\" name=\"book_id\" id=\"title-id\">\n                        <option value=\"default\">Select title...</option>\n                    </select>\n                    <div class=\"invalid-feedback\">"
+    + alias4((lookupProperty(helpers,"error-check")||(depth0 && lookupProperty(depth0,"error-check"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"trouble") : depth0),"book_id",{"name":"error-check","hash":{},"data":data,"loc":{"start":{"line":15,"column":50},"end":{"line":15,"column":83}}}))
     + "</div>\n                </div>\n            </div>\n\n            <div class=\"row mb-3\">\n                <label for=\"imprint-id\" class=\"col-form-label col-sm-3\">Imprint</label>\n                <div class=\"col input-group-has-validation\">\n                    <input class=\"form-control "
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(lookupProperty(helpers,"error-check")||(depth0 && lookupProperty(depth0,"error-check"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"trouble") : depth0),"imprint",{"name":"error-check","hash":{},"data":data,"loc":{"start":{"line":23,"column":53},"end":{"line":23,"column":84}}}),{"name":"if","hash":{},"fn":container.program(3, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":23,"column":47},"end":{"line":23,"column":103}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(lookupProperty(helpers,"error-check")||(depth0 && lookupProperty(depth0,"error-check"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"trouble") : depth0),"imprint",{"name":"error-check","hash":{},"data":data,"loc":{"start":{"line":22,"column":53},"end":{"line":22,"column":84}}}),{"name":"if","hash":{},"fn":container.program(3, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":22,"column":47},"end":{"line":22,"column":103}}})) != null ? stack1 : "")
     + "\" id=\"imprint-id\" name=\"imprint\" type=\"text\" value=\""
     + alias4(alias5(((stack1 = (depth0 != null ? lookupProperty(depth0,"populate") : depth0)) != null ? lookupProperty(stack1,"imprint") : stack1), depth0))
     + "\">\n                    <div class=\"invalid-feedback\">"
-    + alias4((lookupProperty(helpers,"error-check")||(depth0 && lookupProperty(depth0,"error-check"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"trouble") : depth0),"imprint",{"name":"error-check","hash":{},"data":data,"loc":{"start":{"line":24,"column":50},"end":{"line":24,"column":83}}}))
+    + alias4((lookupProperty(helpers,"error-check")||(depth0 && lookupProperty(depth0,"error-check"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"trouble") : depth0),"imprint",{"name":"error-check","hash":{},"data":data,"loc":{"start":{"line":23,"column":50},"end":{"line":23,"column":83}}}))
     + "</div>\n                </div>\n            </div>\n\n            <div class=\"row mb-3\">\n                <label for=\"due-id\" class=\"col-form-label col-sm-3\">Due back</label>\n                <div class=\"col input-group-has-validation\">\n                    <input class=\"form-control "
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(lookupProperty(helpers,"error-check")||(depth0 && lookupProperty(depth0,"error-check"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"trouble") : depth0),"due_back",{"name":"error-check","hash":{},"data":data,"loc":{"start":{"line":31,"column":53},"end":{"line":31,"column":85}}}),{"name":"if","hash":{},"fn":container.program(3, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":31,"column":47},"end":{"line":31,"column":104}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(lookupProperty(helpers,"error-check")||(depth0 && lookupProperty(depth0,"error-check"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"trouble") : depth0),"due_back",{"name":"error-check","hash":{},"data":data,"loc":{"start":{"line":30,"column":53},"end":{"line":30,"column":85}}}),{"name":"if","hash":{},"fn":container.program(3, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":30,"column":47},"end":{"line":30,"column":104}}})) != null ? stack1 : "")
     + "\" id=\"due-id\" name=\"due_back\" type=\"date\" value=\""
     + alias4(alias5(((stack1 = (depth0 != null ? lookupProperty(depth0,"populate") : depth0)) != null ? lookupProperty(stack1,"due_back") : stack1), depth0))
     + "\">\n                    <div class=\"invalid-feedback\">"
-    + alias4((lookupProperty(helpers,"error-check")||(depth0 && lookupProperty(depth0,"error-check"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"trouble") : depth0),"due_back",{"name":"error-check","hash":{},"data":data,"loc":{"start":{"line":32,"column":50},"end":{"line":32,"column":84}}}))
+    + alias4((lookupProperty(helpers,"error-check")||(depth0 && lookupProperty(depth0,"error-check"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"trouble") : depth0),"due_back",{"name":"error-check","hash":{},"data":data,"loc":{"start":{"line":31,"column":50},"end":{"line":31,"column":84}}}))
     + "</div>\n                </div>\n            </div>\n\n            <div class=\"row mb-3\">\n                <label for=\"status-id\" class=\"col-form-label col-sm-3\">Status</label>\n                <div class=\"col input-group-has-validation\">\n                    <select class=\"form-select "
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(lookupProperty(helpers,"error-check")||(depth0 && lookupProperty(depth0,"error-check"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"trouble") : depth0),"status",{"name":"error-check","hash":{},"data":data,"loc":{"start":{"line":39,"column":53},"end":{"line":39,"column":83}}}),{"name":"if","hash":{},"fn":container.program(3, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":39,"column":47},"end":{"line":39,"column":102}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(lookupProperty(helpers,"error-check")||(depth0 && lookupProperty(depth0,"error-check"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"trouble") : depth0),"status",{"name":"error-check","hash":{},"data":data,"loc":{"start":{"line":38,"column":53},"end":{"line":38,"column":83}}}),{"name":"if","hash":{},"fn":container.program(3, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":38,"column":47},"end":{"line":38,"column":102}}})) != null ? stack1 : "")
     + "\" name=\"status\" id=\"status-id\">\n                        <option value=\"default\">Select status...</option>\n                        "
-    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"statusList") : depth0),{"name":"each","hash":{},"fn":container.program(8, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":41,"column":24},"end":{"line":41,"column":148}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"statusList") : depth0),{"name":"each","hash":{},"fn":container.program(5, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":40,"column":24},"end":{"line":40,"column":148}}})) != null ? stack1 : "")
     + "\n                    </select>\n                    <div class=\"invalid-feedback\">"
-    + alias4((lookupProperty(helpers,"error-check")||(depth0 && lookupProperty(depth0,"error-check"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"trouble") : depth0),"status",{"name":"error-check","hash":{},"data":data,"loc":{"start":{"line":43,"column":50},"end":{"line":43,"column":82}}}))
+    + alias4((lookupProperty(helpers,"error-check")||(depth0 && lookupProperty(depth0,"error-check"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"trouble") : depth0),"status",{"name":"error-check","hash":{},"data":data,"loc":{"start":{"line":42,"column":50},"end":{"line":42,"column":82}}}))
     + "</div>\n                </div>\n            </div>\n\n            <div class=\"d-flex justify-content-end\">\n            <button class=\"btn btn-primary fw-semibold\" type=\"submit\">"
-    + alias4(((helper = (helper = lookupProperty(helpers,"submit") || (depth0 != null ? lookupProperty(depth0,"submit") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"submit","hash":{},"data":data,"loc":{"start":{"line":48,"column":70},"end":{"line":48,"column":80}}}) : helper)))
-    + "</button>\n            </div>\n        </form>\n    </div>\n</div>";
+    + alias4(((helper = (helper = lookupProperty(helpers,"submit") || (depth0 != null ? lookupProperty(depth0,"submit") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"submit","hash":{},"data":data,"loc":{"start":{"line":47,"column":70},"end":{"line":47,"column":80}}}) : helper)))
+    + "</button>\n            </div>\n        </form>\n    </div>\n</div>\n\n<script type=\"module\">\n\nimport {populateInventoryTitleSelect} from '/attach-tables.js'\n\npopulateInventoryTitleSelect("
+    + alias4(alias5(((stack1 = (depth0 != null ? lookupProperty(depth0,"populate") : depth0)) != null ? lookupProperty(stack1,"book_id") : stack1), depth0))
+    + ")\n\n</script>";
 },"3":function(container,depth0,helpers,partials,data) {
     return "is-invalid";
 },"5":function(container,depth0,helpers,partials,data,blockParams,depths) {
-    var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3="function", alias4=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
-        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
-          return parent[propertyName];
-        }
-        return undefined
-    };
-
-  return "<option value=\""
-    + alias4(((helper = (helper = lookupProperty(helpers,"book_id") || (depth0 != null ? lookupProperty(depth0,"book_id") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"book_id","hash":{},"data":data,"loc":{"start":{"line":14,"column":57},"end":{"line":14,"column":68}}}) : helper)))
-    + "\" "
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(lookupProperty(helpers,"match-string")||(depth0 && lookupProperty(depth0,"match-string"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"book_id") : depth0),((stack1 = (depths[1] != null ? lookupProperty(depths[1],"populate") : depths[1])) != null ? lookupProperty(stack1,"book_id") : stack1),{"name":"match-string","hash":{},"data":data,"loc":{"start":{"line":14,"column":76},"end":{"line":14,"column":118}}}),{"name":"if","hash":{},"fn":container.program(6, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":14,"column":70},"end":{"line":14,"column":135}}})) != null ? stack1 : "")
-    + ">"
-    + alias4(((helper = (helper = lookupProperty(helpers,"title") || (depth0 != null ? lookupProperty(depth0,"title") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"title","hash":{},"data":data,"loc":{"start":{"line":14,"column":136},"end":{"line":14,"column":145}}}) : helper)))
-    + "</option>";
-},"6":function(container,depth0,helpers,partials,data) {
-    return "selected";
-},"8":function(container,depth0,helpers,partials,data,blockParams,depths) {
     var stack1, alias1=container.lambda, alias2=container.escapeExpression, alias3=depth0 != null ? depth0 : (container.nullContext || {}), lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -672,10 +655,12 @@ templates['bookinstance_form'] = template({"1":function(container,depth0,helpers
   return "<option value=\""
     + alias2(alias1(depth0, depth0))
     + "\" "
-    + ((stack1 = lookupProperty(helpers,"if").call(alias3,(lookupProperty(helpers,"match-string")||(depth0 && lookupProperty(depth0,"match-string"))||container.hooks.helperMissing).call(alias3,depth0,((stack1 = (depths[1] != null ? lookupProperty(depths[1],"populate") : depths[1])) != null ? lookupProperty(stack1,"status") : stack1),{"name":"match-string","hash":{},"data":data,"loc":{"start":{"line":41,"column":72},"end":{"line":41,"column":107}}}),{"name":"if","hash":{},"fn":container.program(6, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":41,"column":66},"end":{"line":41,"column":124}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias3,(lookupProperty(helpers,"match-string")||(depth0 && lookupProperty(depth0,"match-string"))||container.hooks.helperMissing).call(alias3,depth0,((stack1 = (depths[1] != null ? lookupProperty(depths[1],"populate") : depths[1])) != null ? lookupProperty(stack1,"status") : stack1),{"name":"match-string","hash":{},"data":data,"loc":{"start":{"line":40,"column":72},"end":{"line":40,"column":107}}}),{"name":"if","hash":{},"fn":container.program(6, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":40,"column":66},"end":{"line":40,"column":124}}})) != null ? stack1 : "")
     + ">"
     + alias2(alias1(depth0, depth0))
     + "</option>";
+},"6":function(container,depth0,helpers,partials,data) {
+    return "selected";
 },"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data,blockParams,depths) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
@@ -695,7 +680,7 @@ templates['bookinstance_form'] = template({"1":function(container,depth0,helpers
         return undefined
     };
 
-  fn = lookupProperty(decorators,"inline")(fn,props,container,{"name":"inline","hash":{},"fn":container.program(2, data, 0, blockParams, depths),"inverse":container.noop,"args":["content"],"data":data,"loc":{"start":{"line":2,"column":61},"end":{"line":53,"column":12}}}) || fn;
+  fn = lookupProperty(decorators,"inline")(fn,props,container,{"name":"inline","hash":{},"fn":container.program(2, data, 0, blockParams, depths),"inverse":container.noop,"args":["content"],"data":data,"loc":{"start":{"line":2,"column":61},"end":{"line":61,"column":12}}}) || fn;
   return fn;
   }
 

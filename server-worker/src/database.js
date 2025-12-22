@@ -63,6 +63,18 @@ async function genresWithIds(client) {
 	return result.rows
 }
 
+async function booksWithIds(client) {
+	const result = await client.query(
+		`
+			SELECT book_id, title
+			FROM lib.books
+			ORDER BY index_title
+		`
+	)
+	
+	return result.rows
+}
+
 async function trigramAuthorQuery(client, fuzzy) {
 	await client.query('BEGIN')
 	await client.query(`SET LOCAL pg_trgm.similarity_threshold = 0.05`)
@@ -427,6 +439,7 @@ async function bookStatusList(client) {
 module.exports = {
 	authorsWithIds,
 	genresWithIds,
+	booksWithIds,
 	trigramTitleQuery,
 	trigramAuthorQuery,
 	books,

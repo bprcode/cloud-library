@@ -73,15 +73,11 @@ const instanceFormValidator = validator('form', instanceBodyValidator)
 export const bookinstanceController = {
 	bookinstance_create_get: [
 		async (c) => {
-			const [bookList, statusList] = await Promise.all([
-				justBooks.find(c.client),
-				bookStatusList(c.client),
-			])
+			const statusList = await bookStatusList(c.client)
 
 			const book_id = c.req.param('id') ?? null
 
 			return c.render(`bookinstance_form.hbs`, {
-				bookList,
 				statusList,
 				title: 'Add inventory item',
 				form_action: '/catalog/inventory/create',

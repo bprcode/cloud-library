@@ -71,7 +71,7 @@ Handlebars.partials['author_form_body'] = template({"1":function(container,depth
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"collapse") : depth0),{"name":"if","hash":{},"fn":container.program(5, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":56,"column":4},"end":{"line":56,"column":37}}})) != null ? stack1 : "")
     + "\n\n"
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"submit") : depth0),{"name":"if","hash":{},"fn":container.program(7, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":58,"column":4},"end":{"line":62,"column":11}}})) != null ? stack1 : "")
-    + "</form>\n\n<script type=\"module\">\nimport {attachSummarizer} from '/attach-bookbot.js'\nattachSummarizer()\n</script>\n";
+    + "</form>\n\n<script type=\"module\">\n\nimport {attachSummarizer} from '/attach-bookbot.js'\n\nattachSummarizer()\n\n</script>\n";
 },"useData":true});
 Handlebars.partials['book_form_body'] = template({"1":function(container,depth0,helpers,partials,data) {
     var helper, lookupProperty = container.lookupProperty || function(parent, propertyName) {
@@ -96,7 +96,7 @@ Handlebars.partials['book_form_body'] = template({"1":function(container,depth0,
 
   return "    <div class=\"row mb-3\">\n        <label for=\"select-author-id\" class=\"col-form-label col-sm-3 required-star\">Author</label>\n        <div class=\"col input-group-has-validation\">\n            <select name=\"author_id\" id=\"select-author-id\" class=\"form-select "
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(lookupProperty(helpers,"error-check")||(depth0 && lookupProperty(depth0,"error-check"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"trouble") : depth0),"author_id",{"name":"error-check","hash":{},"data":data,"loc":{"start":{"line":18,"column":84},"end":{"line":18,"column":117}}}),{"name":"if","hash":{},"fn":container.program(3, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":18,"column":78},"end":{"line":18,"column":136}}})) != null ? stack1 : "")
-    + "\">\n                <option>Select author...</option>\n"
+    + "\">\n                <option value=\"-1\">Select author...</option>\n"
     + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"authors") : depth0),{"name":"each","hash":{},"fn":container.program(6, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":20,"column":16},"end":{"line":22,"column":25}}})) != null ? stack1 : "")
     + "            </select>\n            <div class=\"invalid-feedback\">"
     + container.escapeExpression((lookupProperty(helpers,"error-check")||(depth0 && lookupProperty(depth0,"error-check"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"trouble") : depth0),"author_id",{"name":"error-check","hash":{},"data":data,"loc":{"start":{"line":24,"column":42},"end":{"line":24,"column":77}}}))
@@ -243,7 +243,7 @@ Handlebars.partials['book_form_body'] = template({"1":function(container,depth0,
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"condense") : depth0),{"name":"if","hash":{},"fn":container.program(19, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":73,"column":4},"end":{"line":73,"column":37}}})) != null ? stack1 : "")
     + "\n\n"
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"submit") : depth0),{"name":"if","hash":{},"fn":container.program(21, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":75,"column":4},"end":{"line":79,"column":11}}})) != null ? stack1 : "")
-    + "</form>\n\n<script type=\"module\">\n\nimport {attachSummarizer} from '/attach-bookbot.js'\nimport {populateAuthorIds, populateGenreCheckboxes} from '/attach-author-genre-data.js'\n\nconst genreCheckList = [\n"
+    + "</form>\n\n<script type=\"module\">\n\nimport {attachSummarizer} from '/attach-bookbot.js'\nimport {populateAuthorIds, populateGenreCheckboxes} from '/attach-tables.js'\n\nconst genreCheckList = [\n"
     + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"genreChecks") : depth0),{"name":"each","hash":{},"fn":container.program(23, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":88,"column":4},"end":{"line":90,"column":13}}})) != null ? stack1 : "")
     + "]\n\nattachSummarizer()\npopulateAuthorIds("
     + alias3(alias4(((stack1 = (depth0 != null ? lookupProperty(depth0,"populate") : depth0)) != null ? lookupProperty(stack1,"author_id") : stack1), depth0))

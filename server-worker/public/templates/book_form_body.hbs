@@ -16,7 +16,7 @@
         <label for="select-author-id" class="col-form-label col-sm-3 required-star">Author</label>
         <div class="col input-group-has-validation">
             <select name="author_id" id="select-author-id" class="form-select {{#if (error-check trouble 'author_id')}}is-invalid{{/if}}">
-                <option>Select author...</option>
+                <option value="-1">Select author...</option>
                 {{#each authors}}
                 <option value="{{author_id}}" {{#if (match-string ../populate.author_id author_id)}}selected{{/if}}>{{last_name}}{{#if last_name}}, {{/if}}{{first_name}}</option>
                 {{/each}}
@@ -82,7 +82,7 @@
 <script type="module">
 
 import {attachSummarizer} from '/attach-bookbot.js'
-import {populateAuthorIds, populateGenreCheckboxes} from '/attach-author-genre-data.js'
+import {populateAuthorIds, populateGenreCheckboxes} from '/attach-tables.js'
 
 const genreCheckList = [
     {{#each genreChecks}}
