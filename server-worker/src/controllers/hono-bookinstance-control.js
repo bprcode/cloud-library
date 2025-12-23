@@ -163,13 +163,9 @@ export const bookinstanceController = {
 
 			const { instance } = c.req.valid('param')
 
-			const [bookList, statusList] = await Promise.all([
-				justBooks.find(c.client),
-				bookStatusList(c.client),
-			])
-
+			const statusList = await bookStatusList(c.client)
+			
 			return c.render(`bookinstance_form.hbs`, {
-				bookList,
 				statusList,
 				title: 'Edit inventory item',
 				form_action: undefined,
