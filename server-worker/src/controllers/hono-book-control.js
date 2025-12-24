@@ -16,7 +16,7 @@ import { paginate } from './paginator'
 import { Client } from 'pg'
 import { withPagination } from '../validation/hono-pagination'
 import { validator } from 'hono/validator'
-import { queries } from '../queries'
+import { queries, deepEqual } from '../queries'
 
 const bookIdValidator = validator('param', async (value, c) => {
 	const book_id = value.id
@@ -25,7 +25,7 @@ const bookIdValidator = validator('param', async (value, c) => {
 		throw new Error('Missing book ID')
 	}
 
-	const [book] = (await books.find(c.client, { book_id })) ?? [null]
+	const [book] = (await queries.book_by_id(c.sql, book_id)) ?? [null]
 
 	if (book) {
 		return {
@@ -112,8 +112,8 @@ const bookJsonValidator = validator('json', async (value, c) => {
 
 export const bookController = {
 	async index(c) {
-		const results = await Promise.all(queries.catalog(c.sql))
- 
+		const results = await queries.catalog(c.sql)
+
 		return c.render('catalog_active_home.hbs', {
 			title: 'Archivia',
 			book_count: results[0],
@@ -130,7 +130,7 @@ export const bookController = {
 			const search = c.req.query('q') || null
 
 			if (search) {
-				const matches = await trigramTitleQuery(c.client, search)
+				const matches = await queries.trigramTitleQuery(c.sql, search)
 
 				return c.render('book_list.hbs', {
 					books: matches,
@@ -141,22 +141,7 @@ export const bookController = {
 				})
 			}
 
-			const [bookList, total] = await Promise.all([
-				books.find(
-					c.client,
-					'book_url',
-					'title',
-					'snippet',
-					'author_url',
-					'full_name',
-					{
-						page,
-						limit,
-					}
-				),
-
-				justBooks.count(c.client),
-			])
+			const [bookList, total] = await queries.catalog_books(c.sql, limit, page)
 
 			const position = paginate(page, limit, total)
 
@@ -171,11 +156,8 @@ export const bookController = {
 	async book_detail(c) {
 		const book_id = c.req.param('id')
 
-		const [resultBook, resultInstances, resultGenres] = await Promise.all([
-			books.find(c.client, { book_id }),
-			bookInstances.find(c.client, { book_id }),
-			genresByBook.find(c.client, { book_id }),
-		])
+		const [resultBook, resultInstances, resultGenres] =
+			await queries.book_detail(c.sql, book_id)
 
 		if (!resultBook) {
 			return c.render(`no_results.hbs`)
@@ -201,9 +183,7 @@ export const bookController = {
 			}
 			const { book_id, book } = c.req.valid('param')
 
-			const [genreChecks] = await Promise.all([
-				genresByBook.find(c.client, { book_id }),
-			])
+			const genreChecks = await queries.book_genre_checks(c.sql, book_id)
 
 			return c.render(`book_form.hbs`, {
 				genres: [],

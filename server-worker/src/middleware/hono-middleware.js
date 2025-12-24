@@ -1,6 +1,6 @@
 import postgres from 'postgres'
 import { Trouble } from '../validation/Trouble'
-const { Client } = require('pg')
+const { Client, Connection } = require('pg')
 
 export let latestPath = 'no path yet'
 
@@ -51,6 +51,16 @@ export async function injectSqlQuerier(c, next) {
 		max: 5,
 		fetch_types: false,
 		prepare: true,
+		debug: (connection, query, parameters, paramTypes) => {
+			console.log('🐛 debug:', '\n'+query, parameters)
+		},
+		// Return sql DATEs as strings, not semantically-incorrect js Dates:
+		types: {
+			date: {
+				from: 1082,
+				parse: value => value
+			}
+		}
 	})
 
 	await next()
