@@ -12,10 +12,11 @@ const {
 	authorsWithIds,
 	booksWithIds,
 } = require('../database.js')
-import {paginate} from './paginator'
+import { paginate } from './paginator'
 import { Client } from 'pg'
 import { withPagination } from '../validation/hono-pagination'
 import { validator } from 'hono/validator'
+import { queries } from '../queries'
 
 const bookIdValidator = validator('param', async (value, c) => {
 	const book_id = value.id
@@ -111,19 +112,14 @@ const bookJsonValidator = validator('json', async (value, c) => {
 
 export const bookController = {
 	async index(c) {
-		const result = await Promise.all([
-			books.count(c.client),
-			authors.count(c.client),
-			genres.count(c.client),
-			suggestions.find(c.client, 'cover_id', 'title', 'snippet', 'book_url'),
-		])
-
+		const results = await Promise.all(queries.catalog(c.sql))
+ 
 		return c.render('catalog_active_home.hbs', {
 			title: 'Archivia',
-			book_count: result[0],
-			author_count: result[1],
-			genre_count: result[2],
-			recent_books: result[3],
+			book_count: results[0],
+			author_count: results[1],
+			genre_count: results[2],
+			recent_books: results[3],
 		})
 	},
 
@@ -314,7 +310,7 @@ export const bookController = {
 
 	async book_create_get(c) {
 		return c.render(`book_form.hbs`, {
-			populate: {author_id: -1},
+			populate: { author_id: -1 },
 			title: 'Add Book',
 			form_action: '/catalog/book/create',
 			submit: 'Create',
@@ -515,7 +511,10 @@ async function suggestRecent(connectionString, workKey, book_id) {
 
 		if (firstCover > 0 && parsed.length > minDescriptionLength) {
 			log('🔍 Suggested work looks good.', yellow)
-			await spotlightWorks.insert(client, { cover_id: firstCover, book_id: book_id })
+			await spotlightWorks.insert(client, {
+				cover_id: firstCover,
+				book_id: book_id,
+			})
 		} else {
 			log("🔍 This text doesn't look like a good candidate.", pink)
 		}

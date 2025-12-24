@@ -5,6 +5,7 @@ import { HTTPException } from 'hono/http-exception'
 import {
 	injectQueryClientLifecycle,
 	injectRenderMethod,
+	injectSqlQuerier,
 	injectTroubleObject,
 	tracer,
 } from './middleware/hono-middleware.js'
@@ -21,6 +22,7 @@ app
 	.use(injectRenderMethod)
 	.use(injectTroubleObject)
 	.use(injectQueryClientLifecycle)
+	.use(injectSqlQuerier)
 	.get('/', (c) => c.redirect('/catalog'))
 	.route('/catalog', honoCatalogRouter)
 	.route('/reset', honoResetRouter)
