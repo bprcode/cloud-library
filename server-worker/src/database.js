@@ -1,5 +1,30 @@
 const { Client } = require('pg')
 require('@bprcode/handy')
+import { latestPath } from './middleware/hono-middleware'
+
+const queryDictionary = new Map()
+
+function recordQuery(path, query) {
+	if(!queryDictionary.has(path)) {
+		queryDictionary.set(path, new Set())
+	}
+
+	queryDictionary.get(path).add(query.trim())
+}
+
+function writeQueries() {
+	const lines = []
+	for(const entry of queryDictionary) {
+		lines.push(`${entry[0]}`)
+		for(const q of entry[1]) {
+
+			lines.push(`\tsql\`${q}\``)
+		}
+	}
+	
+	return lines.join('\n')
+
+}
 
 let dbLog = (...args) => {
 	if (args.length > 1) {
@@ -26,6 +51,16 @@ let dbLog = (...args) => {
 	}
 
 	log(...segments)
+
+	const conversion = []
+	for(const s of segments) {
+		if(typeof s !== 'symbol') {
+			conversion.push(s)
+		}
+	}
+
+	const query = conversion.join('')
+	recordQuery(latestPath, query)
 }
 
 // Silence database logs in production:
@@ -33,6 +68,8 @@ if (process.env.NODE_ENV === 'production') {
 	dbLog = (_) => {}
 }
 const http = require('http')
+const { type } = require('os')
+const { json } = require('stream/consumers')
 
 // Override the node-postgres conversion of SQL DATEs to JavaScript Dates.
 // For this application, a "due date" is assumed to be in the time zone of
@@ -454,4 +491,5 @@ module.exports = {
 	spotlightWorks,
 	suggestions,
 	bookStatusList,
+	writeQueries,
 }

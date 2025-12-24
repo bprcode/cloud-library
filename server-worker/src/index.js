@@ -6,12 +6,18 @@ import {
 	injectQueryClientLifecycle,
 	injectRenderMethod,
 	injectTroubleObject,
+	tracer,
 } from './middleware/hono-middleware.js'
 require('@bprcode/handy')
+const { writeQueries } = require('./database.js')
 
 const app = new Hono({ strict: false })
 
 app
+	.get('/write', async (c) => {
+		return c.text(writeQueries())
+	})
+	.use(tracer)
 	.use(injectRenderMethod)
 	.use(injectTroubleObject)
 	.use(injectQueryClientLifecycle)

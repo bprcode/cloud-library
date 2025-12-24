@@ -1,6 +1,13 @@
 import { Trouble } from '../validation/Trouble'
 const { Client } = require('pg')
 
+export let latestPath = 'no path yet'
+
+export async function tracer(c, next) {
+  latestPath = c.req.path.replace(/\d+/, ':id')
+  await next()
+}
+
 // Add a c.render() method for rendering Handlebars templates:
 export async function injectRenderMethod(c, next) {
 	c.render = (template, options, status = 200) => {
