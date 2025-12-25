@@ -106,6 +106,25 @@ export const queries = {
 
 	books_with_ids: (sql) => sql`SELECT book_id, title FROM lib.books ORDER BY index_title`,
 
+  author_list: (sql, limit, page) => Promise.all([
+    sql`SELECT full_name, dob, dod, author_url, blurb FROM lib.authors ORDER BY last_name, first_name LIMIT ${limit} OFFSET ${limit * (page-1)}`.then(emptyAsNull),
+    sql`SELECT count(*) FROM lib.authors`.then(x=>x[0].count),
+  ]),
+
+  authors_with_ids: (sql) => sql`SELECT first_name, last_name, author_id FROM lib.authors ORDER BY last_name`,
+
+  author_by_id: (sql, author_id) => sql`SELECT * FROM lib.authors WHERE author_id::text ILIKE ${author_id} ORDER BY last_name, first_name`,
+
+  books_by_author: (sql, author_id) => sql`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE author_id::text ILIKE ${author_id} ORDER BY index_title, last_name, first_name`.then(emptyAsNull),
+
+  author_by_first_and_last: (sql, first_name, last_name) => sql`SELECT * FROM lib.authors WHERE first_name::text ILIKE ${first_name} AND last_name::text ILIKE ${last_name} ORDER BY last_name, first_name`.then(emptyAsNull),
+
+  update_author: (sql, author_id, first_name, last_name, dob, dod, bio) => sql`UPDATE lib.authors SET first_name = ${first_name}, last_name = ${last_name}, dob = ${dob}, dod = ${dod}, bio = ${bio} WHERE author_id::text ILIKE ${author_id} RETURNING *`,
+
+  create_author: (sql, first_name, last_name, dob, dod, bio) => sql`INSERT INTO lib.authors (first_name, last_name, dob, dod, bio) VALUES (${first_name}, ${last_name}, ${dob}, ${dod}, ${bio}) RETURNING *`,
+
+  delete_author: (sql, author_id) => sql`DELETE FROM lib.authors  WHERE author_id::text ILIKE ${author_id} RETURNING *`,
+
 	trigramTitleQuery: async (sql, fuzzy) => {
 		return await sql.begin(async (sql) => {
 			await sql`SET LOCAL pg_trgm.similarity_threshold = 0.05`
@@ -130,6 +149,26 @@ export const queries = {
       `
 		})
 	},
+
+  trigramAuthorQuery: async(sql, fuzzy) => {
+    return await sql.begin(async (sql) => {
+			await sql`SET LOCAL pg_trgm.similarity_threshold = 0.05`
+			return await sql`
+      SELECT full_name, dob, dod, author_url, blurb,
+				(CASE
+					WHEN full_name ~* ('\\m' || ${fuzzy} ) THEN 10
+					WHEN full_name ILIKE '%' || ${fuzzy} || '%' THEN 5
+					ELSE 0
+				END)
+					+ word_similarity(full_name, ${fuzzy}) 
+					AS score
+					FROM lib.authors
+					WHERE full_name % ${fuzzy}
+					ORDER BY score DESC
+					LIMIT 20
+      `
+		})
+  }
 }
 
 export function deepEqual(a, b) {

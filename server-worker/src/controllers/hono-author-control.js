@@ -1,13 +1,7 @@
 import { validator } from 'hono/validator'
 import { withPagination } from '../validation/hono-pagination'
 import { paginate } from './paginator'
-
-const {
-	authors,
-	books,
-	trigramAuthorQuery,
-	authorsWithIds,
-} = require('../database.js')
+import { queries } from '../queries'
 
 const authorIdValidator = validator('param', async (value, c) => {
 	const author_id = value.id
@@ -16,7 +10,7 @@ const authorIdValidator = validator('param', async (value, c) => {
 		throw new Error('Missing author ID')
 	}
 
-	const [author] = (await authors.find(c.client, {author_id})) ?? []
+	const [author] = await queries.author_by_id(c.sql, author_id)
 
 	if (author) {
 		return {
@@ -38,8 +32,11 @@ async function authorBodyValidation(value, c) {
 	const author_id = c.req.valid('param')?.author_id ?? '-1'
 
 	if (first_name) {
-		const search = { first_name, last_name }
-		const result = await authors.find(c.client, search)
+		const result = await queries.author_by_first_and_last(
+			c.sql,
+			first_name,
+			last_name
+		)
 
 		if (
 			result &&
@@ -107,7 +104,7 @@ export const authorController = {
 			const search = c.req.query('q') || null
 
 			if (search) {
-				const matches = await trigramAuthorQuery(c.client, search)
+				const matches = await queries.trigramAuthorQuery(c.sql, search)
 
 				return c.render('author_list.hbs', {
 					authors: matches,
@@ -118,22 +115,7 @@ export const authorController = {
 				})
 			}
 
-			const [authorList, total] = await Promise.all([
-					authors.find(
-						c.client,
-						'full_name',
-						'dob',
-						'dod',
-						'author_url',
-						'blurb',
-						{
-							page,
-							limit,
-						}
-				),
-
-				authors.count(c.client),
-			])
+			const [authorList, total] = await queries.author_list(c.sql, limit, page)
 
 			const position = paginate(page, limit, total)
 
@@ -146,7 +128,7 @@ export const authorController = {
 	],
 
 	async authors_with_ids(c) {
-		const list = await authorsWithIds(c.client)
+		const list = await queries.authors_with_ids(c.sql)
 		return c.json(list)
 	},
 
@@ -159,7 +141,7 @@ export const authorController = {
 				return c.render(`no_results.hbs`)
 			}
 
-			const bookList = await books.find(c.client, { author_id })
+			const bookList = await queries.books_by_author(c.sql, author_id)
 
 			// Split text for paragraph tags:
 			if (author.bio) {
@@ -220,7 +202,15 @@ export const authorController = {
 				})
 			}
 
-			const [result] = await authors.update(c.client, author, { author_id })
+			const [result] = await queries.update_author(
+				c.sql,
+				author_id,
+				author.first_name,
+				author.last_name,
+				author.dob,
+				author.dod,
+				author.bio
+			)
 
 			return c.redirect(result.author_url)
 		},
@@ -235,13 +225,14 @@ export const authorController = {
 
 			try {
 				const validated = c.req.valid('json')
-				const result = await authors.insert(c.client, {
-					first_name: validated.first_name,
-					last_name: validated.last_name || null,
-					dob: validated.dob || null,
-					dod: validated.dod || null,
-					bio: validated.bio || null,
-				})
+				const result = await queries.create_author(
+					c.sql,
+					validated.first_name,
+					validated.last_name || null,
+					validated.dob || null,
+					validated.dod || null,
+					validated.bio || null
+				)
 
 				return c.json(result[0], { status: 201 })
 			} catch (e) {
@@ -259,7 +250,7 @@ export const authorController = {
 			}
 
 			const { author, author_id } = c.req.valid('param')
-			const bookList = await books.find(c.client, { author_id })
+			const bookList = await queries.books_by_author(c.sql, author_id)
 
 			return c.render(`author_delete.hbs`, {
 				author,
@@ -272,7 +263,7 @@ export const authorController = {
 		authorIdValidator,
 		async (c) => {
 			const { author_id } = c.req.valid('param')
-			await authors.delete(c.client, { author_id })
+			await queries.delete_author(c.sql, author_id)
 			return c.redirect(`/catalog/authors`)
 		},
 	],
@@ -304,7 +295,15 @@ export const authorController = {
 			}
 
 			try {
-				const [result] = await authors.insert(c.client, item)
+				const [result] = await queries.create_author(
+					c.sql,
+					item.first_name,
+					item.last_name,
+					item.dob,
+					item.dod,
+					item.bio
+				)
+
 				return c.redirect(result.author_url)
 			} catch (e) {
 				log.err(e.message)
