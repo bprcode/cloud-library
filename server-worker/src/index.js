@@ -7,7 +7,6 @@ import {
 	injectSqlQuerier,
 	injectTroubleObject,
 } from './middleware/hono-middleware.js'
-require('@bprcode/handy')
 
 const app = new Hono({ strict: false })
 
