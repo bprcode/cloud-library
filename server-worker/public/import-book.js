@@ -1,6 +1,7 @@
-import * as lib from "./import-common.js"
+import * as lib from './import-common.js'
 import * as pager from './client-paginate.js'
-import {attachSummarizer} from '/attach-bookbot.js'
+import {attachSummarizer} from './attach-bookbot.js'
+import { populateGenreCheckboxes } from './attach-tables.js'
 
 // Convenience shorthands
 const log = console.log.bind(console)
@@ -118,6 +119,7 @@ async function revealModal (event) {
         })
 
         attachSummarizer()
+        populateGenreCheckboxes(new Set())
 
     } catch (e) {
         log('error: ', e)
