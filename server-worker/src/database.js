@@ -304,6 +304,8 @@ class Model {
 			`INSERT INTO ${this.relation} (${columns}) ` +
 			`VALUES (${values}) RETURNING *`
 
+		dbLog(statement)
+		
 		return clientQuery(client, statement, Object.values(item))
 	}
 

@@ -16,7 +16,7 @@ import { paginate } from './paginator'
 import { Client } from 'pg'
 import { withPagination } from '../validation/hono-pagination'
 import { validator } from 'hono/validator'
-import { queries, deepEqual } from '../queries'
+import { queries, verifyEqual } from '../queries'
 
 const bookIdValidator = validator('param', async (value, c) => {
 	const book_id = value.id
@@ -50,7 +50,8 @@ async function bookBodyValidation(value, c) {
 	if (!title) {
 		c.trouble.add('title', 'Title required')
 	} else {
-		const alreadyTaken = await books.find(c.client, { title })
+		const alreadyTaken = await queries.book_by_title(c.sql, title)
+
 		if (alreadyTaken && String(book_id) !== String(alreadyTaken[0].book_id)) {
 			c.trouble.add('title', 'Title already in catalog.')
 		} else {
@@ -62,7 +63,8 @@ async function bookBodyValidation(value, c) {
 	if (!author_id) {
 		c.trouble.add('author_id', 'No author indicated.')
 	} else {
-		const author = await authors.find(c.client, { author_id })
+		const author = await queries.author_by_id(c.sql, author_id)
+
 		if (!author) {
 			c.trouble.add('author_id', 'Invalid author.')
 		} else {
@@ -202,8 +204,8 @@ export const bookController = {
 		bookFormValidator,
 		async (c) => {
 			const [genreLabels, authorLabels] = await Promise.all([
-				genres.find(c.client),
-				authors.find(c.client),
+				queries.all_genres(c.sql),
+				queries.all_authors(c.sql),
 			])
 
 			const { title, isbn, author_id, summary, genreList } = c.req.valid('form')
@@ -234,10 +236,10 @@ export const bookController = {
 			}
 
 			// Remove the old book_genres table entries
-			await bookGenres.delete(c.client, { book_id })
-			const [resultBook] = await justBooks.update(c.client, item, {
-				book_id,
-			})
+			await queries.delete_book_genre_by_book_id(c.sql, book_id)
+			const [resultBook] = await queries.update_book(c.sql, book_id, item.title, item.isbn, item.author_id, item.summary)
+			
+			verifyEqual(resultBook, resultBook)
 
 			// N.B. If this were a common route, it would be worth optimizing
 			// to insert all values in a single query:

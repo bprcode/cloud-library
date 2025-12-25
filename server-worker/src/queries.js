@@ -1,4 +1,6 @@
-// console.log('🟪 DEEP EQUAL?', deepEqual(result, cfResult) ? '✅' : '🛑')
+export function verifyEqual(a, b) {
+  console.log('🟪 DEEP EQUAL?', deepEqual(a, b) ? '✅' : '🛑')
+}
 
 function emptyAsNull(rows) {
 	return rows?.length === 0 ? null : rows
@@ -46,8 +48,21 @@ export const queries = {
 			emptyAsNull
 		),
 
-	book_genre_checks: (sql, book_id) =>
+  book_by_title: (sql, title) =>
+    sql`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE title::text ILIKE ${title} ORDER BY index_title, last_name, first_name`.then(emptyAsNull),
+
+  author_by_id: (sql, author_id) => sql`SELECT * FROM lib.authors WHERE author_id::text ILIKE ${author_id} ORDER BY last_name, first_name`.then(emptyAsNull),
+	
+  book_genre_checks: (sql, book_id) =>
 		sql`SELECT * FROM lib.book_genres JOIN lib.genres USING(genre_id) WHERE book_id::text ILIKE ${book_id} ORDER BY name`.then(emptyAsNull),
+
+  all_genres: sql => sql`SELECT * FROM lib.genres ORDER BY name`.then(emptyAsNull),
+
+  all_authors: sql => sql`SELECT * FROM lib.authors ORDER BY last_name, first_name`.then(emptyAsNull),
+
+  delete_book_genre_by_book_id: (sql, book_id) => sql`DELETE FROM lib.book_genres  WHERE book_id::text ILIKE ${book_id} RETURNING *`.then(emptyAsNull),
+
+  update_book: (sql, book_id, title, isbn, author_id, summary) => sql`UPDATE lib.books SET title = ${title}, isbn = ${isbn}, author_id = ${author_id}, summary = ${summary} WHERE book_id::text ILIKE ${book_id} RETURNING *`,
 
 	trigramTitleQuery: async (sql, fuzzy) => {
 		return await sql.begin(async (sql) => {
@@ -136,10 +151,10 @@ console.log('🟧 COMPARE 2', cfResult)
 	
 	sql`SELECT * FROM lib.authors WHERE author_id::text ILIKE $1 ORDER BY last_name, first_name`,
 	sql`SELECT * FROM lib.genres WHERE genre_id::text ILIKE $1 ORDER BY name`,
-	sql`SELECT * FROM lib.genres ORDER BY name`,
-	sql`SELECT * FROM lib.authors ORDER BY last_name, first_name`,
-	sql`DELETE FROM lib.book_genres  WHERE book_id::text ILIKE $1 RETURNING *`,
-	sql`UPDATE lib.books SET title = $2, isbn = $3, author_id = $4, summary = $5 WHERE book_id::text ILIKE $1 RETURNING *`,
+	
+	
+	
+	
 /catalog/book/:id/delete
 	sql`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE book_id::text ILIKE $1 ORDER BY index_title, last_name, first_name`,
 	sql`SELECT * FROM lib.book_instance WHERE book_id::text ILIKE $1 ORDER BY instance_id`,
