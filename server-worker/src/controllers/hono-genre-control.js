@@ -1,13 +1,7 @@
 import { validator } from 'hono/validator'
 import { withPagination } from '../validation/hono-pagination'
 import { paginate } from './paginator'
-const {
-	genres,
-	booksByGenre,
-	bookGenres,
-	justBooks,
-	genresWithIds,
-} = require('../database.js')
+import { queries } from '../queries'
 
 const genreIdValidator = validator('param', async (value, c) => {
 	const genre_id = value.id
@@ -16,7 +10,7 @@ const genreIdValidator = validator('param', async (value, c) => {
 		throw new Error('Missing genre ID')
 	}
 
-	const result = await genres.find(c.client, { genre_id })
+	const result = await queries.genre_by_id(c.sql, genre_id)
 
 	if (result?.length) {
 		return {
@@ -39,7 +33,7 @@ const genreBodyValidator = async (value, c) => {
 		validated.name = value.name.trim()
 	}
 
-	const collisions = await genres.find(c.client, { name: value.name })
+	const collisions = await queries.genre_by_name(c.sql, value.name)
 
 	if (
 		collisions &&
@@ -57,7 +51,7 @@ const genreJsonValidator = validator('json', genreBodyValidator)
 
 export const genreController = {
 	async genre_json_get(c) {
-		const result = await genres.find(c.client)
+		const result = await queries.all_genres(c.sql)
 		return c.json(result || [])
 	},
 
@@ -66,14 +60,7 @@ export const genreController = {
 		async (c) => {
 			const { page, limit } = c.req.valid('query')
 
-			const [genreList, total] = await Promise.all([
-				genres.find(c.client, {
-					page,
-					limit,
-				}),
-
-				genres.count(c.client),
-			])
+			const [genreList, total] = await queries.genre_list(c.sql, limit, page)
 
 			const position = paginate(page, limit, total)
 
@@ -88,11 +75,12 @@ export const genreController = {
 	async genre_detail(c) {
 		const genre_id = c.req.param('id')
 
-		const [resultGenre, resultBooks, genreCount] = await Promise.all([
-			genres.find(c.client, { genre_id }),
-			booksByGenre.find(c.client, { genre_id }),
-			booksByGenre.count(c.client, { genre_id }),
-		])
+		const [resultGenre, resultBooks] = await queries.genre_detail(
+			c.sql,
+			genre_id
+		)
+
+		const genreCount = String(resultBooks?.length || 0)
 
 		if (!resultGenre)
 			return c.render(`no_results.hbs`, {
@@ -156,7 +144,7 @@ export const genreController = {
 			const { genre_id } = c.req.valid('param')
 			const { name } = c.req.valid('form')
 
-			const result = await genres.update(c.client, { name }, { genre_id })
+			const result = await queries.update_genre(c.sql, genre_id, name)
 
 			return c.redirect(result[0].genre_url)
 		},
@@ -187,13 +175,9 @@ export const genreController = {
 					400
 				)
 			}
-			try {
-				const result = await genres.insert(c.client, { name })
-				return c.redirect(result[0].genre_url)
-			} catch (e) {
-				log.err(e.message)
-				throw e
-			}
+
+			const result = await queries.create_genre(c.sql, name)
+			return c.redirect(result[0].genre_url)
 		},
 	],
 
@@ -217,7 +201,7 @@ export const genreController = {
 
 			const { genre_id } = c.req.valid('param')
 
-			await genres.delete(c.client, { genre_id })
+			await queries.delete_genre(c.sql, genre_id)
 			return c.redirect(`/catalog/genres`)
 		},
 	],
@@ -230,13 +214,9 @@ export const genreController = {
 			if (!c.trouble.isEmpty()) {
 				return c.json({ trouble: c.trouble.array() }, { status: 409 })
 			}
-			try {
-				const result = await genres.insert(c.client, { name })
-				return await c.json(result[0], { status: 201 })
-			} catch (e) {
-				log.err(e.message)
-				throw e
-			}
+
+			const result = await queries.create_genre(c.sql, name)
+			return await c.json(result[0], { status: 201 })
 		},
 	],
 
@@ -245,13 +225,16 @@ export const genreController = {
 			const validated = {}
 			const { genre_id, book_id } = value
 
-			if (await genres.find(c.client, { genre_id })) {
+			const foundGenre = await queries.genre_by_id(c.sql, genre_id)
+			const foundBook = await queries.just_book_by_id(c.sql, book_id)
+
+			if (foundGenre) {
 				validated.genre_id = genre_id
 			} else {
 				c.trouble.add('genre_id', 'Invalid genre ID.')
 			}
 
-			if (await justBooks.find(c.client, { book_id })) {
+			if (foundBook) {
 				validated.book_id = book_id
 			} else {
 				c.trouble.add('book_id', 'Invalid book ID.')
@@ -264,25 +247,27 @@ export const genreController = {
 				return c.json({ trouble: c.trouble.array() }, { status: 400 })
 			}
 
-			try {
-				const { book_id, genre_id } = c.req.valid('json')
+			const { book_id, genre_id } = c.req.valid('json')
 
-				const result = await bookGenres.insert(c.client, {
+			try {
+				const result = await queries.create_book_genre_association(
+					c.sql,
 					book_id,
-					genre_id,
-				})
+					genre_id
+				)
+
 				if (result) {
 					return c.json(result[0], { status: 201 })
 				}
 			} catch (e) {
-				log.err(e.message)
-				throw e
+				return c.text('Conflict in existing associations.', { status: 409 })
 			}
+			return c.text('Unable to make association.', { status: 400 })
 		},
 	],
 
 	async genres_with_ids(c) {
-		const result = await genresWithIds(c.client)
+		const result = await queries.genres_with_ids(c.sql)
 		return c.json(result)
 	},
 }

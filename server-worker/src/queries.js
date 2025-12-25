@@ -167,6 +167,35 @@ export const queries = {
 			sql`SELECT count(*) FROM lib.book_instance`.then((x) => x[0].count),
 		]),
 
+    genre_list: (sql, limit, page) => Promise.all([
+      sql`SELECT * FROM lib.genres ORDER BY name LIMIT ${limit} OFFSET ${limit * (page - 1)}`,
+      sql`SELECT count(*) FROM lib.genres`.then((x) => x[0].count),
+
+    ]),
+
+    genre_detail: (sql, genre_id) => Promise.all([
+
+      sql`SELECT * FROM lib.genres WHERE genre_id::text ILIKE ${genre_id} ORDER BY name`.then(emptyAsNull),
+  
+      sql`SELECT * FROM lib.books JOIN lib.book_genres USING(book_id) WHERE genre_id::text ILIKE ${genre_id} ORDER BY index_title`.then(emptyAsNull),
+    ]),
+
+    genre_by_id: (sql, genre_id) => sql`SELECT * FROM lib.genres WHERE genre_id::text ILIKE ${genre_id} ORDER BY name`.then(emptyAsNull),
+
+    genre_by_name: (sql, name) => sql`SELECT * FROM lib.genres WHERE name::text ILIKE ${name} ORDER BY name`.then(emptyAsNull),
+
+    update_genre: (sql, genre_id, name) => sql`UPDATE lib.genres SET name = ${name} WHERE genre_id::text ILIKE ${genre_id} RETURNING *`,
+
+    create_genre: (sql, name) => sql`INSERT INTO lib.genres (name) VALUES (${name}) RETURNING *`,
+
+    delete_genre: (sql, genre_id) => sql`DELETE FROM lib.genres  WHERE genre_id::text ILIKE ${genre_id} RETURNING *`,
+
+    create_book_genre_association: (sql, book_id, genre_id) => sql`INSERT INTO lib.book_genres (book_id, genre_id) VALUES (${book_id}, ${genre_id}) RETURNING *`.then(emptyAsNull),
+
+    genres_with_ids: (sql) => sql`SELECT genre_id, name FROM lib.genres ORDER BY name`,
+
+    all_genres: (sql) => sql`SELECT * FROM lib.genres ORDER BY name`,
+
 	bookStatusList: (sql) =>
 		sql`SELECT unnest(enum_range(NULL::lib.book_status))`.then((x) =>
 			x.map((y) => y.unnest)
