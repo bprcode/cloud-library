@@ -257,7 +257,7 @@ export const bookController = {
 				return c.redirect(`/catalog/book/delete`)
 			}
 
-			const instances = await bookInstances.find(c.client, { book_id })
+			const instances = await queries.instances_by_book_id(c.sql, book_id)
 
 			return c.render(`book_delete.hbs`, {
 				book,
@@ -275,7 +275,8 @@ export const bookController = {
 				return c.redirect(`/catalog/book/delete`)
 			}
 
-			await justBooks.delete(c.client, { book_id })
+			await queries.delete_book(c.sql, book_id)
+
 			return c.redirect(`/catalog/books`)
 		},
 	],
@@ -314,33 +315,27 @@ export const bookController = {
 			}
 
 			// Having passed validation, create the new book.
-			const result = await justBooks.insert(c.client, item)
+			const result = await queries.create_book(c.sql, item.title, item.isbn, item.author_id, item.summary)
 
 			// Start a lookup on OpenLibrary,
 			// add this book to the recent works spotlight if it looks good.
 			c.executionCtx.waitUntil(
 				suggestBook(
-					c.connectionString,
+					c.sql,
 					result[0].title,
 					(
-						await authors.find(c.client, 'full_name', {
-							author_id: result[0].author_id,
-						})
+						await queries.author_full_name_by_id(c.sql, result[0].author_id)
 					)[0].full_name,
 					result[0].book_id
 				)
 			)
 
-			// Also need to repeatedly insert on genre/book junction table
+			// Also need to insert into genre/book junction table
 			const book_id = result[0].book_id
-			await Promise.all(
-				genreList.map((genre_id) =>
-					bookGenres.insert(c.client, { book_id, genre_id })
-				)
-			).catch((e) => {
-				log.err(e.message)
-				throw e
-			})
+			const inserts = genreList.map(genre_id => ({book_id, genre_id}))
+
+			await queries.insert_book_genres(c.sql, inserts)
+
 
 			return c.redirect(result[0].book_url)
 		},
@@ -386,10 +381,7 @@ export const bookController = {
 	},
 }
 
-async function suggestBook(connectionString, title, author, book_id) {
-	const client = new Client({ connectionString })
-	try {
-		await client.connect()
+async function suggestBook(sql, title, author, book_id) {
 		log(
 			`🔍 Attempting book lookup for "${title}" by ${author}` +
 				` with book_id ${book_id}`
@@ -432,18 +424,12 @@ async function suggestBook(connectionString, title, author, book_id) {
 
 			if (firstCover > 0) {
 				log('🔍 Work accepted. Adding to spotlight queue...', green)
-				await spotlightWorks.insert(client, {
-					cover_id: firstCover,
-					book_id: book_id,
-				})
+				await queries.insert_spotlight_work(sql, firstCover, book_id)
+				
 			}
 		} catch (e) {
 			log.err(e.message)
 		}
-	} finally {
-		await client.end()
-		log('👋🔍 suggestion client released.')
-	}
 }
 
 async function suggestRecent(connectionString, workKey, book_id) {

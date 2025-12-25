@@ -83,6 +83,17 @@ export const queries = {
 
   insert_book_genres: (sql, values) => sql`INSERT INTO lib.book_genres ${sql(values, 'book_id', 'genre_id')}`,
 
+  instances_by_book_id: (sql, book_id) => sql`SELECT * FROM lib.book_instance WHERE book_id::text ILIKE ${book_id} ORDER BY instance_id`.then(emptyAsNull),
+
+  delete_book: (sql, book_id) => sql`DELETE FROM lib.books WHERE book_id::text ILIKE ${book_id} RETURNING *`.then(emptyAsNull),
+
+  create_book: (sql, title, isbn, author_id, summary) =>
+    sql`INSERT INTO lib.books (title, isbn, author_id, summary) VALUES (${title}, ${isbn}, ${author_id}, ${summary}) RETURNING *`,
+
+  author_full_name_by_id: (sql, author_id) => sql`SELECT full_name FROM lib.authors WHERE author_id::text ILIKE ${author_id}`,
+
+  insert_spotlight_work: (sql, cover_id, book_id) => sql`INSERT INTO lib.spotlight_works (cover_id, book_id) VALUES (${cover_id}, ${book_id})`,
+
 	trigramTitleQuery: async (sql, fuzzy) => {
 		return await sql.begin(async (sql) => {
 			await sql`SET LOCAL pg_trgm.similarity_threshold = 0.05`
