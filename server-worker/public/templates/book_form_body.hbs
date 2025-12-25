@@ -14,14 +14,17 @@
     {{#unless omit_author}}
     <div class="row mb-3">
         <label for="select-author-id" class="col-form-label col-sm-3 required-star">Author</label>
-        <div class="col input-group-has-validation">
-            <select name="author_id" id="select-author-id" class="form-select {{#if (error-check trouble 'author_id')}}is-invalid{{/if}}">
-                <option value="-1">Select author...</option>
-                {{#each authors}}
-                <option value="{{author_id}}" {{#if (match-string ../populate.author_id author_id)}}selected{{/if}}>{{last_name}}{{#if last_name}}, {{/if}}{{first_name}}</option>
-                {{/each}}
-            </select>
-            <div class="invalid-feedback">{{error-check trouble 'author_id'}}</div>
+        <div class="col d-flex gap-1">
+            <div class="input-group-has-validation flex-grow-1">
+                <select name="author_id" id="select-author-id" class="form-select {{#if (error-check trouble 'author_id')}}is-invalid{{/if}}">
+                    <option value="-1">Select author...</option>
+                    {{#each authors}}
+                    <option value="{{author_id}}" {{#if (match-string ../populate.author_id author_id)}}selected{{/if}}>{{last_name}}{{#if last_name}}, {{/if}}{{first_name}}</option>
+                    {{/each}}
+                </select>
+                <div class="invalid-feedback w-100">{{error-check trouble 'author_id'}}</div>
+            </div>
+            <a class="btn ui-button" href="/catalog/author/import" style="width: 36px; height: 36px;"><img src="/file-earmark-plus.svg" alt="New entry icon. Click to import an author."></a>
         </div>
     </div>
     {{/unless}}
