@@ -367,11 +367,6 @@ export const bookController = {
 }
 
 async function suggestBook(sql, title, author, book_id) {
-		log(
-			`🔍 Attempting book lookup for "${title}" by ${author}` +
-				` with book_id ${book_id}`
-		)
-
 		try {
 			const searchUrl = new URL('https://openlibrary.org/search.json')
 			searchUrl.searchParams.set('title', title)
@@ -381,16 +376,13 @@ async function suggestBook(sql, title, author, book_id) {
 
 			const searchRes = await fetch(searchUrl.toString())
 			if (!searchRes.ok) {
-				log(`❌🔍 Search request failed for ${title}`)
 				throw new Error(`Search request failed: ${searchRes.status}`)
 			}
 
-			log(`🔍 Search request retrieved for ${title}...`)
 
 			const searchData = await searchRes.json()
 
 			if (!searchData.docs || searchData.docs.length === 0) {
-				log(`❌🔍 No docs available for ${title}`)
 				return
 			}
 
@@ -398,17 +390,14 @@ async function suggestBook(sql, title, author, book_id) {
 
 			const workRes = await fetch(`https://openlibrary.org${workKey}.json`)
 			if (!workRes.ok) {
-				log(`❌🔍 Unable to retrieve work record for ${title}`)
 				throw new Error(`Work request failed: ${workRes.status}`)
 			}
 
 			const workData = await workRes.json()
 
-			log(`🔍 Checking covers for ${title}...`)
 			const firstCover = workData.covers?.[0]
 
 			if (firstCover > 0) {
-				log('🔍 Work accepted. Adding to spotlight queue...', green)
 				await queries.insert_spotlight_work(sql, firstCover, book_id)
 				
 			}
@@ -423,7 +412,6 @@ async function suggestRecent(sql, workKey, book_id) {
 
 	try {
 		const url = `https://openlibrary.org${workKey}.json`
-		log('Considering ', url)
 
 		const response = await fetch(url)
 
@@ -434,7 +422,6 @@ async function suggestRecent(sql, workKey, book_id) {
 		const data = await response.json()
 
 		if (!Array.isArray(data.covers)) {
-			log(`Rejecting suggestion (no covers available for ${workKey})`, pink)
 			return
 		}
 
@@ -442,11 +429,8 @@ async function suggestRecent(sql, workKey, book_id) {
 		const parsed = parseDescription(data.description)
 
 		if (firstCover > 0 && parsed.length > minDescriptionLength) {
-			log('🔍 Suggested work looks good.', yellow)
 			await queries.insert_spotlight_work(sql, firstCover, book_id)
 			
-		} else {
-			log("🔍 This text doesn't look like a good candidate.", pink)
 		}
 	} catch (e) {
 		log.err(e.message)

@@ -3,10 +3,8 @@ import { Hono } from 'hono/quick'
 export const honoResetRouter = new Hono()
 
 const resetDatabase = async function (c) {
-	log('🗑️ Reset started...')
 	await resetSQL(c.sql)
 	await retimeSQL(c.sql)
-	log('♻️ Reset complete.')
 	return c.text(
 		`Reset complete (${new Date().toLocaleString('en-US', {
 			timeZone: 'America/Los_Angeles',

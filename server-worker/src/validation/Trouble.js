@@ -11,7 +11,6 @@ export class Trouble {
   }
 
   add(param, msg) {
-    log('⚠️ ', param, yellow, ' had trouble: ', msg, yellow)
     this.issues.push({param, msg})
   }
 }

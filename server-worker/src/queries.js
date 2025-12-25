@@ -1,7 +1,3 @@
-export function verifyEqual(a, b) {
-	console.log('🟪 DEEP EQUAL?', deepEqual(a, b) ? '✅' : '🛑')
-}
-
 function emptyAsNull(rows) {
 	return rows?.length === 0 ? null : rows
 }
@@ -258,46 +254,4 @@ export const queries = {
       `
 		})
 	},
-}
-
-export function deepEqual(a, b) {
-	if (a === b) return true
-
-	if (
-		typeof a !== 'object' ||
-		a === null ||
-		typeof b !== 'object' ||
-		b === null
-	) {
-		console.error(a, '❌', b)
-		return false
-	}
-
-	const keysA = Object.keys(a)
-	const keysB = Object.keys(b)
-
-	if (keysA.length !== keysB.length) {
-		console.error(
-			'❌ Length mismatch: |A| = ',
-			keysA.length,
-			'... |B| = ',
-			keysB.length
-		)
-		console.error(keysA)
-		console.error(keysB)
-		return false
-	}
-
-	for (const key of keysA) {
-		if (!keysB.includes(key)) {
-			console.error('❌ Key mismatch on', key)
-		}
-		if (!keysB.includes(key) || !deepEqual(a[key], b[key])) {
-			console.log(`🔑 ${key}`)
-
-			return false
-		}
-	}
-
-	return true
 }
