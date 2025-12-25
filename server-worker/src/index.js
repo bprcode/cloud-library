@@ -18,6 +18,7 @@ app
 	.get('/', (c) => c.redirect('/catalog'))
 	.route('/catalog', honoCatalogRouter)
 	.route('/reset', honoResetRouter)
+	.get('/fail-test', (c) => c.text('Sample error.', {status: 418}))
 	.get('/bookbot', (c) => c.text(c.env.BOOKBOT_URL))
 	.get('/env', (c) => c.text(`Environment is: ${process.env.NODE_ENV}.`))
 	.all('*', (c) =>
