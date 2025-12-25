@@ -1,12 +1,7 @@
 import { validator } from 'hono/validator'
 import { withPagination } from '../validation/hono-pagination'
 import { paginate } from './paginator'
-const {
-	inventory,
-	bookInstances,
-	justBooks,
-	bookStatusList,
-} = require('../database.js')
+import { queries } from '../queries'
 
 const instanceIdValidator = validator('param', async (value, c) => {
 	const validated = {}
@@ -15,11 +10,12 @@ const instanceIdValidator = validator('param', async (value, c) => {
 	if (!instance_id) {
 		c.trouble.add('id', 'Invalid item ID.')
 	} else {
-		validated.instance_id = instance_id
-		const found = await inventory.find(c.client, { instance_id })
+		const found = await queries.instance_with_details(c.sql, instance_id)
+
 		if (!found) {
 			c.trouble.add('id', 'Instance not found.')
 		} else {
+			validated.instance_id = instance_id
 			validated.instance = found[0]
 		}
 	}
@@ -31,7 +27,8 @@ async function instanceBodyValidator(value, c) {
 	const validated = {}
 
 	const book_id = value.book_id?.trim() ?? '-1'
-	if (!(await justBooks.find(c.client, { book_id }))) {
+
+	if (!(await queries.just_book_by_id(c.sql, book_id))) {
 		c.trouble.add('book_id', 'No book matched book id.')
 	} else {
 		validated.book_id = book_id
@@ -48,7 +45,7 @@ async function instanceBodyValidator(value, c) {
 	if (!status) {
 		c.trouble.add('status', 'Invalid status.')
 	} else {
-		const validStatusList = await bookStatusList(c.client)
+		const validStatusList = await queries.bookStatusList(c.sql)
 		if (!validStatusList.includes(status)) {
 			c.trouble.add('status', 'Status not recognized.')
 		} else {
@@ -73,7 +70,7 @@ const instanceFormValidator = validator('form', instanceBodyValidator)
 export const bookinstanceController = {
 	bookinstance_create_get: [
 		async (c) => {
-			const statusList = await bookStatusList(c.client)
+			const statusList = await queries.bookStatusList(c.sql)
 
 			const book_id = c.req.param('id') ?? null
 
@@ -90,11 +87,6 @@ export const bookinstanceController = {
 	bookinstance_create_post: [
 		instanceFormValidator,
 		async (c) => {
-			const [bookList, statusList] = await Promise.all([
-				justBooks.find(c.client),
-				bookStatusList(c.client),
-			])
-
 			const validated = c.req.valid('form')
 			const item = {
 				book_id: validated.book_id,
@@ -104,10 +96,11 @@ export const bookinstanceController = {
 			}
 
 			if (!c.trouble.isEmpty()) {
+				const statusList = await queries.bookStatusList(c.sql)
+
 				return c.render(
 					`bookinstance_form.hbs`,
 					{
-						bookList,
 						statusList,
 						trouble: c.trouble.array(),
 						title: 'Add inventory item',
@@ -119,15 +112,15 @@ export const bookinstanceController = {
 				)
 			}
 
-			if (!validated.due_back) delete item.due_back // Allow database to handle default
+			const [result] = await queries.create_instance(
+				c.sql,
+				item.book_id,
+				item.imprint,
+				item.status,
+				item.due_back ?? c.sql`DEFAULT`
+			)
 
-			try {
-				const [result] = await bookInstances.insert(c.client, item)
-				return c.redirect(result.book_instance_url)
-			} catch (e) {
-				log.err(e.message)
-				throw e
-			}
+			return c.redirect(result.book_instance_url)
 		},
 	],
 
@@ -142,12 +135,13 @@ export const bookinstanceController = {
 			return c.render(`bookinstance_delete.hbs`, { item: instance })
 		},
 	],
+
 	bookinstance_delete_post: [
 		instanceIdValidator,
 		async (c) => {
 			if (c.trouble.isEmpty()) {
 				const { instance_id } = c.req.valid('param')
-				await bookInstances.delete(c.client, { instance_id })
+				await queries.delete_instance(c.sql, instance_id)
 			}
 
 			return c.redirect(`/catalog/inventory`)
@@ -162,9 +156,8 @@ export const bookinstanceController = {
 			}
 
 			const { instance } = c.req.valid('param')
+			const statusList = await queries.bookStatusList(c.sql)
 
-			const statusList = await bookStatusList(c.client)
-			
 			return c.render(`bookinstance_form.hbs`, {
 				statusList,
 				title: 'Edit inventory item',
@@ -174,6 +167,7 @@ export const bookinstanceController = {
 			})
 		},
 	],
+
 	bookinstance_update_post: [
 		instanceIdValidator,
 		instanceFormValidator,
@@ -192,15 +186,11 @@ export const bookinstanceController = {
 					return c.redirect(`/catalog/inventory`)
 				}
 
-				const [bookList, statusList] = await Promise.all([
-					justBooks.find(c.client),
-					bookStatusList(c.client),
-				])
+				const statusList = await queries.bookStatusList(c.sql)
 
 				return c.render(
 					`bookinstance_form.hbs`,
 					{
-						bookList,
 						statusList,
 						trouble: c.trouble.array(),
 						title: 'Edit inventory item',
@@ -212,9 +202,14 @@ export const bookinstanceController = {
 				)
 			}
 
-			const [result] = await bookInstances.update(c.client, item, {
+			const [result] = await queries.update_instance(
+				c.sql,
 				instance_id,
-			})
+				item.book_id,
+				item.imprint,
+				item.due_back ?? c.sql`DEFAULT`,
+				item.status
+			)
 
 			return c.redirect(result.book_instance_url)
 		},
@@ -241,12 +236,11 @@ export const bookinstanceController = {
 		async (c) => {
 			const { page, limit } = c.req.valid('query')
 
-			const [itemList, total] = await Promise.all([
-				inventory.find(c.client, { page, limit }),
-
-				inventory.count(c.client),
-			])
-
+			const [itemList, total] = await queries.bookinstance_list(
+				c.sql,
+				limit,
+				page
+			)
 			const position = paginate(page, limit, total)
 
 			return c.render('bookinstance_list.hbs', {

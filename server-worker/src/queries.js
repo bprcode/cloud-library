@@ -104,27 +104,73 @@ export const queries = {
 	insert_spotlight_work: (sql, cover_id, book_id) =>
 		sql`INSERT INTO lib.spotlight_works (cover_id, book_id) VALUES (${cover_id}, ${book_id})`,
 
-	books_with_ids: (sql) => sql`SELECT book_id, title FROM lib.books ORDER BY index_title`,
+	books_with_ids: (sql) =>
+		sql`SELECT book_id, title FROM lib.books ORDER BY index_title`,
 
-  author_list: (sql, limit, page) => Promise.all([
-    sql`SELECT full_name, dob, dod, author_url, blurb FROM lib.authors ORDER BY last_name, first_name LIMIT ${limit} OFFSET ${limit * (page-1)}`.then(emptyAsNull),
-    sql`SELECT count(*) FROM lib.authors`.then(x=>x[0].count),
-  ]),
+	author_list: (sql, limit, page) =>
+		Promise.all([
+			sql`SELECT full_name, dob, dod, author_url, blurb FROM lib.authors ORDER BY last_name, first_name LIMIT ${limit} OFFSET ${
+				limit * (page - 1)
+			}`.then(emptyAsNull),
+			sql`SELECT count(*) FROM lib.authors`.then((x) => x[0].count),
+		]),
 
-  authors_with_ids: (sql) => sql`SELECT first_name, last_name, author_id FROM lib.authors ORDER BY last_name`,
+	authors_with_ids: (sql) =>
+		sql`SELECT first_name, last_name, author_id FROM lib.authors ORDER BY last_name`,
 
-  author_by_id: (sql, author_id) => sql`SELECT * FROM lib.authors WHERE author_id::text ILIKE ${author_id} ORDER BY last_name, first_name`,
+	author_by_id: (sql, author_id) =>
+		sql`SELECT * FROM lib.authors WHERE author_id::text ILIKE ${author_id} ORDER BY last_name, first_name`,
 
-  books_by_author: (sql, author_id) => sql`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE author_id::text ILIKE ${author_id} ORDER BY index_title, last_name, first_name`.then(emptyAsNull),
+	books_by_author: (sql, author_id) =>
+		sql`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE author_id::text ILIKE ${author_id} ORDER BY index_title, last_name, first_name`.then(
+			emptyAsNull
+		),
 
-  author_by_first_and_last: (sql, first_name, last_name) => sql`SELECT * FROM lib.authors WHERE first_name::text ILIKE ${first_name} AND last_name::text ILIKE ${last_name} ORDER BY last_name, first_name`.then(emptyAsNull),
+	author_by_first_and_last: (sql, first_name, last_name) =>
+		sql`SELECT * FROM lib.authors WHERE first_name::text ILIKE ${first_name} AND last_name::text ILIKE ${last_name} ORDER BY last_name, first_name`.then(
+			emptyAsNull
+		),
 
-  update_author: (sql, author_id, first_name, last_name, dob, dod, bio) => sql`UPDATE lib.authors SET first_name = ${first_name}, last_name = ${last_name}, dob = ${dob}, dod = ${dod}, bio = ${bio} WHERE author_id::text ILIKE ${author_id} RETURNING *`,
+	update_author: (sql, author_id, first_name, last_name, dob, dod, bio) =>
+		sql`UPDATE lib.authors SET first_name = ${first_name}, last_name = ${last_name}, dob = ${dob}, dod = ${dod}, bio = ${bio} WHERE author_id::text ILIKE ${author_id} RETURNING *`,
 
-  create_author: (sql, first_name, last_name, dob, dod, bio) => sql`INSERT INTO lib.authors (first_name, last_name, dob, dod, bio) VALUES (${first_name}, ${last_name}, ${dob}, ${dod}, ${bio}) RETURNING *`,
+	create_author: (sql, first_name, last_name, dob, dod, bio) =>
+		sql`INSERT INTO lib.authors (first_name, last_name, dob, dod, bio) VALUES (${first_name}, ${last_name}, ${dob}, ${dod}, ${bio}) RETURNING *`,
 
-  delete_author: (sql, author_id) => sql`DELETE FROM lib.authors  WHERE author_id::text ILIKE ${author_id} RETURNING *`,
+	delete_author: (sql, author_id) =>
+		sql`DELETE FROM lib.authors  WHERE author_id::text ILIKE ${author_id} RETURNING *`,
 
+	just_book_by_id: (sql, book_id) =>
+		sql`SELECT * FROM lib.books WHERE book_id::text ILIKE ${book_id} ORDER BY index_title`.then(
+			emptyAsNull
+		),
+
+	create_instance: (sql, book_id, imprint, status, due_back) =>
+		sql`INSERT INTO lib.book_instance (book_id, imprint, status, due_back) VALUES (${book_id}, ${imprint}, ${status}, ${due_back}) RETURNING *`,
+
+	instance_with_details: (sql, instance_id) =>
+		sql`SELECT * FROM lib.books JOIN lib.authors USING(author_id) JOIN lib.book_instance USING(book_id) WHERE instance_id::text ILIKE ${instance_id} ORDER BY index_title, last_name, first_name, instance_id`.then(
+			emptyAsNull
+		),
+
+	delete_instance: (sql, instance_id) =>
+		sql`DELETE FROM lib.book_instance WHERE instance_id::text ILIKE ${instance_id} RETURNING *`,
+
+	update_instance: (sql, instance_id, book_id, imprint, due_back, status) =>
+		sql`UPDATE lib.book_instance SET book_id = ${book_id}, imprint = ${imprint}, due_back = ${due_back}, status = ${status} WHERE instance_id::text ILIKE ${instance_id} RETURNING *`,
+
+	bookinstance_list: (sql, limit, page) =>
+		Promise.all([
+			sql`SELECT * FROM lib.books JOIN lib.authors USING(author_id) JOIN lib.book_instance USING(book_id) ORDER BY index_title, last_name, first_name, instance_id LIMIT ${limit} OFFSET ${
+				limit * (page - 1)
+			}`,
+			sql`SELECT count(*) FROM lib.book_instance`.then((x) => x[0].count),
+		]),
+
+	bookStatusList: (sql) =>
+		sql`SELECT unnest(enum_range(NULL::lib.book_status))`.then((x) =>
+			x.map((y) => y.unnest)
+		),
 	trigramTitleQuery: async (sql, fuzzy) => {
 		return await sql.begin(async (sql) => {
 			await sql`SET LOCAL pg_trgm.similarity_threshold = 0.05`
@@ -150,8 +196,8 @@ export const queries = {
 		})
 	},
 
-  trigramAuthorQuery: async(sql, fuzzy) => {
-    return await sql.begin(async (sql) => {
+	trigramAuthorQuery: async (sql, fuzzy) => {
+		return await sql.begin(async (sql) => {
 			await sql`SET LOCAL pg_trgm.similarity_threshold = 0.05`
 			return await sql`
       SELECT full_name, dob, dod, author_url, blurb,
@@ -168,7 +214,7 @@ export const queries = {
 					LIMIT 20
       `
 		})
-  }
+	},
 }
 
 export function deepEqual(a, b) {
