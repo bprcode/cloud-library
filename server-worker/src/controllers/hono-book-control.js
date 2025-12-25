@@ -1,22 +1,7 @@
-const {
-	books,
-	justBooks,
-	authors,
-	genres,
-	bookInstances,
-	genresByBook,
-	bookGenres,
-	spotlightWorks,
-	suggestions,
-	trigramTitleQuery,
-	authorsWithIds,
-	booksWithIds,
-} = require('../database.js')
 import { paginate } from './paginator'
-import { Client } from 'pg'
 import { withPagination } from '../validation/hono-pagination'
 import { validator } from 'hono/validator'
-import { queries, verifyEqual } from '../queries'
+import { queries } from '../queries'
 
 const bookIdValidator = validator('param', async (value, c) => {
 	const book_id = value.id
@@ -360,12 +345,12 @@ export const bookController = {
 			}
 
 			// Having passed validation, create the new book.
-			const result = await justBooks.insert(c.client, item)
+			const result = await queries.create_book(c.sql, item.title, item.isbn, item.author_id, item.summary)
 
 			// Consider including the book in the recently-added list:
 			c.executionCtx.waitUntil(
 				suggestRecent(
-					c.connectionString,
+					c.sql,
 					c.req.valid('json').work_key,
 					result[0].book_id
 				)
@@ -376,7 +361,7 @@ export const bookController = {
 	],
 
 	async books_with_ids(c) {
-		const list = await booksWithIds(c.client)
+		const list = await queries.books_with_ids(c.sql)
 		return c.json(list)
 	},
 }
@@ -432,16 +417,11 @@ async function suggestBook(sql, title, author, book_id) {
 		}
 }
 
-async function suggestRecent(connectionString, workKey, book_id) {
+async function suggestRecent(sql, workKey, book_id) {
 	const minDescriptionLength = 200
 	if (typeof workKey !== 'string') return
 
-	const client = new Client({ connectionString })
-
 	try {
-		await client.connect()
-		log('👆🔍 recent suggestion client acquired.')
-
 		const url = `https://openlibrary.org${workKey}.json`
 		log('Considering ', url)
 
@@ -463,19 +443,14 @@ async function suggestRecent(connectionString, workKey, book_id) {
 
 		if (firstCover > 0 && parsed.length > minDescriptionLength) {
 			log('🔍 Suggested work looks good.', yellow)
-			await spotlightWorks.insert(client, {
-				cover_id: firstCover,
-				book_id: book_id,
-			})
+			await queries.insert_spotlight_work(sql, firstCover, book_id)
+			
 		} else {
 			log("🔍 This text doesn't look like a good candidate.", pink)
 		}
 	} catch (e) {
 		log.err(e.message)
-	} finally {
-		await client.end()
-		log('👋🔍 recent suggestion client released.')
-	}
+	} 
 
 	function parseDescription(description) {
 		if (!description) return 'No description available.'

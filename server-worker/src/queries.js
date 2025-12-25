@@ -79,20 +79,32 @@ export const queries = {
 	update_book: (sql, book_id, title, isbn, author_id, summary) =>
 		sql`UPDATE lib.books SET title = ${title}, isbn = ${isbn}, author_id = ${author_id}, summary = ${summary} WHERE book_id::text ILIKE ${book_id} RETURNING *`,
 
-	all_genre_ids: sql => sql`SELECT array_agg(genre_id) AS all_ids FROM lib.genres`,
+	all_genre_ids: (sql) =>
+		sql`SELECT array_agg(genre_id) AS all_ids FROM lib.genres`,
 
-  insert_book_genres: (sql, values) => sql`INSERT INTO lib.book_genres ${sql(values, 'book_id', 'genre_id')}`,
+	insert_book_genres: (sql, values) =>
+		sql`INSERT INTO lib.book_genres ${sql(values, 'book_id', 'genre_id')}`,
 
-  instances_by_book_id: (sql, book_id) => sql`SELECT * FROM lib.book_instance WHERE book_id::text ILIKE ${book_id} ORDER BY instance_id`.then(emptyAsNull),
+	instances_by_book_id: (sql, book_id) =>
+		sql`SELECT * FROM lib.book_instance WHERE book_id::text ILIKE ${book_id} ORDER BY instance_id`.then(
+			emptyAsNull
+		),
 
-  delete_book: (sql, book_id) => sql`DELETE FROM lib.books WHERE book_id::text ILIKE ${book_id} RETURNING *`.then(emptyAsNull),
+	delete_book: (sql, book_id) =>
+		sql`DELETE FROM lib.books WHERE book_id::text ILIKE ${book_id} RETURNING *`.then(
+			emptyAsNull
+		),
 
-  create_book: (sql, title, isbn, author_id, summary) =>
-    sql`INSERT INTO lib.books (title, isbn, author_id, summary) VALUES (${title}, ${isbn}, ${author_id}, ${summary}) RETURNING *`,
+	create_book: (sql, title, isbn, author_id, summary) =>
+		sql`INSERT INTO lib.books (title, isbn, author_id, summary) VALUES (${title}, ${isbn}, ${author_id}, ${summary}) RETURNING *`,
 
-  author_full_name_by_id: (sql, author_id) => sql`SELECT full_name FROM lib.authors WHERE author_id::text ILIKE ${author_id}`,
+	author_full_name_by_id: (sql, author_id) =>
+		sql`SELECT full_name FROM lib.authors WHERE author_id::text ILIKE ${author_id}`,
 
-  insert_spotlight_work: (sql, cover_id, book_id) => sql`INSERT INTO lib.spotlight_works (cover_id, book_id) VALUES (${cover_id}, ${book_id})`,
+	insert_spotlight_work: (sql, cover_id, book_id) =>
+		sql`INSERT INTO lib.spotlight_works (cover_id, book_id) VALUES (${cover_id}, ${book_id})`,
+
+	books_with_ids: (sql) => sql`SELECT book_id, title FROM lib.books ORDER BY index_title`,
 
 	trigramTitleQuery: async (sql, fuzzy) => {
 		return await sql.begin(async (sql) => {
