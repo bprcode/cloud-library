@@ -3,8 +3,8 @@ import { Hono } from 'hono/quick'
 export const honoResetRouter = new Hono()
 
 const resetDatabase = async function (c) {
-  await c.client.query(resetSQL)
-  await c.client.query(retimeSQL)
+  await resetSQL(c.sql)
+  await retimeSQL(c.sql)
   log('♻️ Reset complete.')
   return c.text('Reset complete.')
 }
@@ -12,15 +12,15 @@ const resetDatabase = async function (c) {
 honoResetRouter
   .post('/', resetDatabase)
 
-const retimeSQL =
-`
+const retimeSQL = sql =>
+sql`
 UPDATE lib.book_instance
 SET due_back = CURRENT_DATE + (3 + FLOOR(RANDOM() * 180))::int
 WHERE due_back IS NOT NULL
 `
 
-const resetSQL =
-`
+const resetSQL = sql =>
+sql`
 BEGIN;
 DELETE FROM lib.spotlight_works;
 DELETE FROM lib.book_instance;
