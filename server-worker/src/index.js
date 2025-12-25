@@ -3,25 +3,17 @@ import { honoCatalogRouter } from './routes/hono-catalog-route.js'
 import { honoResetRouter } from './routes/hono-reset-route.js'
 import { HTTPException } from 'hono/http-exception'
 import {
-	injectQueryClientLifecycle,
 	injectRenderMethod,
 	injectSqlQuerier,
 	injectTroubleObject,
-	tracer,
 } from './middleware/hono-middleware.js'
 require('@bprcode/handy')
-const { writeQueries } = require('./database.js')
 
 const app = new Hono({ strict: false })
 
 app
-	.get('/write', async (c) => {
-		return c.text(writeQueries())
-	})
-	.use(tracer)
 	.use(injectRenderMethod)
 	.use(injectTroubleObject)
-	.use(injectQueryClientLifecycle)
 	.use(injectSqlQuerier)
 	.get('/', (c) => c.redirect('/catalog'))
 	.route('/catalog', honoCatalogRouter)

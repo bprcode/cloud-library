@@ -118,9 +118,6 @@ export const queries = {
 	authors_with_ids: (sql) =>
 		sql`SELECT first_name, last_name, author_id FROM lib.authors ORDER BY last_name`,
 
-	author_by_id: (sql, author_id) =>
-		sql`SELECT * FROM lib.authors WHERE author_id::text ILIKE ${author_id} ORDER BY last_name, first_name`,
-
 	books_by_author: (sql, author_id) =>
 		sql`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE author_id::text ILIKE ${author_id} ORDER BY index_title, last_name, first_name`.then(
 			emptyAsNull
@@ -167,34 +164,51 @@ export const queries = {
 			sql`SELECT count(*) FROM lib.book_instance`.then((x) => x[0].count),
 		]),
 
-    genre_list: (sql, limit, page) => Promise.all([
-      sql`SELECT * FROM lib.genres ORDER BY name LIMIT ${limit} OFFSET ${limit * (page - 1)}`,
-      sql`SELECT count(*) FROM lib.genres`.then((x) => x[0].count),
+	genre_list: (sql, limit, page) =>
+		Promise.all([
+			sql`SELECT * FROM lib.genres ORDER BY name LIMIT ${limit} OFFSET ${
+				limit * (page - 1)
+			}`,
+			sql`SELECT count(*) FROM lib.genres`.then((x) => x[0].count),
+		]),
 
-    ]),
+	genre_detail: (sql, genre_id) =>
+		Promise.all([
+			sql`SELECT * FROM lib.genres WHERE genre_id::text ILIKE ${genre_id} ORDER BY name`.then(
+				emptyAsNull
+			),
 
-    genre_detail: (sql, genre_id) => Promise.all([
+			sql`SELECT * FROM lib.books JOIN lib.book_genres USING(book_id) WHERE genre_id::text ILIKE ${genre_id} ORDER BY index_title`.then(
+				emptyAsNull
+			),
+		]),
 
-      sql`SELECT * FROM lib.genres WHERE genre_id::text ILIKE ${genre_id} ORDER BY name`.then(emptyAsNull),
-  
-      sql`SELECT * FROM lib.books JOIN lib.book_genres USING(book_id) WHERE genre_id::text ILIKE ${genre_id} ORDER BY index_title`.then(emptyAsNull),
-    ]),
+	genre_by_id: (sql, genre_id) =>
+		sql`SELECT * FROM lib.genres WHERE genre_id::text ILIKE ${genre_id} ORDER BY name`.then(
+			emptyAsNull
+		),
 
-    genre_by_id: (sql, genre_id) => sql`SELECT * FROM lib.genres WHERE genre_id::text ILIKE ${genre_id} ORDER BY name`.then(emptyAsNull),
+	genre_by_name: (sql, name) =>
+		sql`SELECT * FROM lib.genres WHERE name::text ILIKE ${name} ORDER BY name`.then(
+			emptyAsNull
+		),
 
-    genre_by_name: (sql, name) => sql`SELECT * FROM lib.genres WHERE name::text ILIKE ${name} ORDER BY name`.then(emptyAsNull),
+	update_genre: (sql, genre_id, name) =>
+		sql`UPDATE lib.genres SET name = ${name} WHERE genre_id::text ILIKE ${genre_id} RETURNING *`,
 
-    update_genre: (sql, genre_id, name) => sql`UPDATE lib.genres SET name = ${name} WHERE genre_id::text ILIKE ${genre_id} RETURNING *`,
+	create_genre: (sql, name) =>
+		sql`INSERT INTO lib.genres (name) VALUES (${name}) RETURNING *`,
 
-    create_genre: (sql, name) => sql`INSERT INTO lib.genres (name) VALUES (${name}) RETURNING *`,
+	delete_genre: (sql, genre_id) =>
+		sql`DELETE FROM lib.genres  WHERE genre_id::text ILIKE ${genre_id} RETURNING *`,
 
-    delete_genre: (sql, genre_id) => sql`DELETE FROM lib.genres  WHERE genre_id::text ILIKE ${genre_id} RETURNING *`,
+	create_book_genre_association: (sql, book_id, genre_id) =>
+		sql`INSERT INTO lib.book_genres (book_id, genre_id) VALUES (${book_id}, ${genre_id}) RETURNING *`.then(
+			emptyAsNull
+		),
 
-    create_book_genre_association: (sql, book_id, genre_id) => sql`INSERT INTO lib.book_genres (book_id, genre_id) VALUES (${book_id}, ${genre_id}) RETURNING *`.then(emptyAsNull),
-
-    genres_with_ids: (sql) => sql`SELECT genre_id, name FROM lib.genres ORDER BY name`,
-
-    all_genres: (sql) => sql`SELECT * FROM lib.genres ORDER BY name`,
+	genres_with_ids: (sql) =>
+		sql`SELECT genre_id, name FROM lib.genres ORDER BY name`,
 
 	bookStatusList: (sql) =>
 		sql`SELECT unnest(enum_range(NULL::lib.book_status))`.then((x) =>
@@ -286,141 +300,4 @@ export function deepEqual(a, b) {
 	}
 
 	return true
-}
-
-/*
-
-console.log('🟦 COMPARE 1', result)
-console.log('🟧 COMPARE 2', cfResult)
-
-
-*/
-
-/*
-/catalog
-/catalog/books
-/catalog/book/:id
-
-/catalog/book/:id/update
-	
-	sql`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE title::text ILIKE $1 ORDER BY index_title, last_name, first_name`,
-	
-	sql`SELECT * FROM lib.authors WHERE author_id::text ILIKE $1 ORDER BY last_name, first_name`,
-	sql`SELECT * FROM lib.genres WHERE genre_id::text ILIKE $1 ORDER BY name`,
-	
-	
-	
-	
-/catalog/book/:id/delete
-	sql`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE book_id::text ILIKE $1 ORDER BY index_title, last_name, first_name`,
-	sql`SELECT * FROM lib.book_instance WHERE book_id::text ILIKE $1 ORDER BY instance_id`,
-	sql`DELETE FROM lib.books  WHERE book_id::text ILIKE $1 RETURNING *`,
-/catalog/author/:id
-	sql`SELECT * FROM lib.authors WHERE author_id::text ILIKE $1 ORDER BY last_name, first_name`,
-	sql`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE author_id::text ILIKE $1 ORDER BY index_title, last_name, first_name`,
-/catalog/genre/:id
-	sql`SELECT * FROM lib.genres WHERE genre_id::text ILIKE $1 ORDER BY name`,
-	sql`SELECT * FROM lib.books JOIN lib.book_genres USING(book_id) WHERE genre_id::text ILIKE $1 ORDER BY index_title`,
-	sql`SELECT count(*) FROM lib.books JOIN lib.book_genres USING(book_id)`,
-/catalog/inventory/:id
-	sql`SELECT * FROM lib.books JOIN lib.authors USING(author_id) JOIN lib.book_instance USING(book_id) WHERE instance_id::text ILIKE $1 ORDER BY index_title, last_name, first_name, instance_id`,
-/catalog/authors
-	sql`SELECT full_name, dob, dod, author_url, blurb FROM lib.authors ORDER BY last_name, first_name LIMIT $1 OFFSET $2`,
-	sql`SELECT count(*) FROM lib.authors`,
-/catalog/author/:id/update
-	sql`SELECT * FROM lib.authors WHERE author_id::text ILIKE $1 ORDER BY last_name, first_name`,
-	sql`SELECT * FROM lib.authors WHERE first_name::text ILIKE $1 AND last_name::text ILIKE $2 ORDER BY last_name, first_name`,
-	sql`UPDATE lib.authors SET first_name = $2, last_name = $3, dob = $4, dod = $5, bio = $6 WHERE author_id::text ILIKE $1 RETURNING *`,
-/catalog/author/:id/delete
-	sql`SELECT * FROM lib.authors WHERE author_id::text ILIKE $1 ORDER BY last_name, first_name`,
-	sql`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE author_id::text ILIKE $1 ORDER BY index_title, last_name, first_name`,
-	sql`DELETE FROM lib.authors  WHERE author_id::text ILIKE $1 RETURNING *`,
-/catalog/book/create
-	sql`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE title::text ILIKE $1 ORDER BY index_title, last_name, first_name`,
-	sql`SELECT * FROM lib.authors WHERE author_id::text ILIKE $1 ORDER BY last_name, first_name`,
-	sql`SELECT * FROM lib.genres WHERE genre_id::text ILIKE $1 ORDER BY name`,
-	sql`SELECT full_name FROM lib.authors WHERE author_id::text ILIKE $1 ORDER BY last_name, first_name`,
-/catalog/author/create
-	sql`SELECT * FROM lib.authors WHERE first_name::text ILIKE $1 AND last_name IS NULL ORDER BY last_name, first_name`,
-/catalog/genres
-	sql`SELECT * FROM lib.genres ORDER BY name LIMIT $1 OFFSET $2`,
-	sql`SELECT count(*) FROM lib.genres`,
-/catalog/genre/:id/update
-	sql`SELECT * FROM lib.genres WHERE genre_id::text ILIKE $1 ORDER BY name`,
-	sql`SELECT * FROM lib.genres WHERE name::text ILIKE $1 ORDER BY name`,
-	sql`UPDATE lib.genres SET name = $2 WHERE genre_id::text ILIKE $1 RETURNING *`,
-/catalog/genre/create
-	sql`SELECT * FROM lib.genres WHERE name::text ILIKE $1 ORDER BY name`,
-/catalog/genre/:id/delete
-	sql`SELECT * FROM lib.genres WHERE genre_id::text ILIKE $1 ORDER BY name`,
-	sql`DELETE FROM lib.genres  WHERE genre_id::text ILIKE $1 RETURNING *`,
-/catalog/inventory
-	sql`SELECT * FROM lib.books JOIN lib.authors USING(author_id) JOIN lib.book_instance USING(book_id) ORDER BY index_title, last_name, first_name, instance_id LIMIT $1 OFFSET $2`,
-	sql`SELECT count(*) FROM lib.books JOIN lib.authors USING(author_id) JOIN lib.book_instance USING(book_id)`,
-/catalog/inventory/:id/update
-	sql`SELECT * FROM lib.books JOIN lib.authors USING(author_id) JOIN lib.book_instance USING(book_id) WHERE instance_id::text ILIKE $1 ORDER BY index_title, last_name, first_name, instance_id`,
-	sql`SELECT * FROM lib.books WHERE book_id::text ILIKE $1 ORDER BY index_title`,
-	sql`UPDATE lib.book_instance SET book_id = $2, imprint = $3, due_back = $4, status = $5 WHERE instance_id::text ILIKE $1 RETURNING *`,
-/catalog/inventory/:id/delete
-	sql`SELECT * FROM lib.books JOIN lib.authors USING(author_id) JOIN lib.book_instance USING(book_id) WHERE instance_id::text ILIKE $1 ORDER BY index_title, last_name, first_name, instance_id`,
-	sql`DELETE FROM lib.book_instance  WHERE instance_id::text ILIKE $1 RETURNING *`,
-/catalog/inventory/create
-	sql`SELECT * FROM lib.books WHERE book_id::text ILIKE $1 ORDER BY index_title`,
-	sql`SELECT * FROM lib.books ORDER BY index_title`,
-/catalog/genre/json
-	sql`SELECT * FROM lib.genres ORDER BY name`,
-/catalog/author/json
-	sql`SELECT * FROM lib.authors WHERE first_name::text ILIKE $1 AND last_name::text ILIKE $2 ORDER BY last_name, first_name`,
-/catalog/book/json
-	sql`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE title::text ILIKE $1 ORDER BY index_title, last_name, first_name`,
-	sql`SELECT * FROM lib.authors WHERE author_id::text ILIKE $1 ORDER BY last_name, first_name`,
-*/
-
-async function authorsWithIds(sql) {
-	return await sql`
-			SELECT first_name, last_name, author_id
-			FROM lib.authors
-			ORDER BY last_name
-		`
-}
-
-async function genresWithIds(sql) {
-	return await sql`
-			SELECT genre_id, name
-			FROM lib.genres
-			ORDER BY name
-		`
-}
-
-async function booksWithIds(sql) {
-	return await sql`
-			SELECT book_id, title
-			FROM lib.books
-			ORDER BY index_title
-		`
-}
-
-async function trigramAuthorQuery(client, fuzzy) {
-	await client.query('BEGIN')
-	await client.query(`SET LOCAL pg_trgm.similarity_threshold = 0.05`)
-	const results = await client.query(
-		`
-			SELECT full_name, dob, dod, author_url, blurb,
-				(CASE
-					WHEN full_name ~* ('\\m' || $1 ) THEN 10
-					WHEN full_name ILIKE '%' || $1 || '%' THEN 5
-					ELSE 0
-				END)
-					+ word_similarity(full_name, $1) 
-					AS score
-					FROM lib.authors
-					WHERE full_name % $1
-					ORDER BY score DESC
-					LIMIT 20
-		`,
-		[fuzzy]
-	)
-	await client.query('COMMIT')
-
-	return results.rows
 }
