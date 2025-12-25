@@ -81,6 +81,8 @@ export const queries = {
 
 	all_genre_ids: sql => sql`SELECT array_agg(genre_id) AS all_ids FROM lib.genres`,
 
+  insert_book_genres: (sql, values) => sql`INSERT INTO lib.book_genres ${sql(values, 'book_id', 'genre_id')}`,
+
 	trigramTitleQuery: async (sql, fuzzy) => {
 		return await sql.begin(async (sql) => {
 			await sql`SET LOCAL pg_trgm.similarity_threshold = 0.05`

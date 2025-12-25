@@ -241,18 +241,8 @@ export const bookController = {
 				item.summary
 			)
 
-			// N.B. If this were a common route, it would be worth optimizing
-			// to insert all values in a single query:
-			try {
-				await Promise.all(
-					genreList.map((genre_id) =>
-						bookGenres.insert(c.client, { book_id, genre_id })
-					)
-				)
-			} catch (e) {
-				log.err(e.message)
-				throw e
-			}
+			const inserts = genreList.map(genre_id => ({book_id, genre_id}))
+			await queries.insert_book_genres(c.sql, inserts)
 
 			return c.redirect(resultBook.book_url)
 		},
