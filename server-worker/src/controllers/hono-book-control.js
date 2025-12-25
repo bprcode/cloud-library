@@ -90,18 +90,20 @@ async function bookBodyValidation(value, c) {
 		})
 		.filter(Boolean)
 
-	const genreResults = await Promise.all(
-		genreList.map((g) => genres.find(c.client, { genre_id: g }))
-	)
+	const allGenres = (await queries.all_genre_ids(c.sql))[0]?.all_ids
+		?.slice(1, -1)
+		.split(',')
+	const validGenres = new Set(allGenres)
 
-	genreResults.forEach((r, idx) => {
-		if (!r) {
-			c.trouble.add('genre', `Invalid genre ID: ${genreList[idx]}`)
-		}
-	})
-
-	// Attach parsed genre list
+	// Optimistic assignment:
 	validated.genreList = genreList
+
+	for (const g of genreList) {
+		if (!validGenres.has(g)) {
+			c.trouble.add('genre', `Invalid genre ID: ${g}`)
+			delete validated.genreList
+		}
+	}
 
 	return validated
 }
@@ -203,11 +205,6 @@ export const bookController = {
 		bookIdValidator,
 		bookFormValidator,
 		async (c) => {
-			const [genreLabels, authorLabels] = await Promise.all([
-				queries.all_genres(c.sql),
-				queries.all_authors(c.sql),
-			])
-
 			const { title, isbn, author_id, summary, genreList } = c.req.valid('form')
 			const { book_id } = c.req.valid('param')
 			const item = { title, isbn, author_id, summary }
@@ -223,13 +220,11 @@ export const bookController = {
 					`book_form.hbs`,
 					{
 						trouble: c.trouble.array(),
-						genres: genreLabels,
-						authors: authorLabels,
 						title: 'Edit Book',
 						form_action: undefined,
 						submit: 'Save Changes',
 						populate: item,
-						genreChecks: genreList.map((g) => ({ genre_id: parseInt(g) })),
+						genreChecks: genreList?.map((g) => ({ genre_id: parseInt(g) })) ?? [],
 					},
 					400
 				)
@@ -237,9 +232,14 @@ export const bookController = {
 
 			// Remove the old book_genres table entries
 			await queries.delete_book_genre_by_book_id(c.sql, book_id)
-			const [resultBook] = await queries.update_book(c.sql, book_id, item.title, item.isbn, item.author_id, item.summary)
-			
-			verifyEqual(resultBook, resultBook)
+			const [resultBook] = await queries.update_book(
+				c.sql,
+				book_id,
+				item.title,
+				item.isbn,
+				item.author_id,
+				item.summary
+			)
 
 			// N.B. If this were a common route, it would be worth optimizing
 			// to insert all values in a single query:
@@ -308,22 +308,16 @@ export const bookController = {
 			item.isbn ??= null
 
 			if (!c.trouble.isEmpty()) {
-				const [genreLabels, authorLabels] = await Promise.all([
-					genres.find(c.client),
-					authors.find(c.client),
-				])
 
 				return c.render(
 					`book_form.hbs`,
 					{
 						trouble: c.trouble.array(),
-						genres: genreLabels,
-						authors: authorLabels,
 						title: 'Add Book',
 						form_action: '/catalog/book/create',
 						submit: 'Create',
 						populate: item,
-						genreChecks: genreList.map((g) => ({ genre_id: parseInt(g) })),
+						genreChecks: genreList?.map((g) => ({ genre_id: parseInt(g) })) ?? [],
 					},
 					400
 				)

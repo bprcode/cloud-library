@@ -1,5 +1,5 @@
 export function verifyEqual(a, b) {
-  console.log('🟪 DEEP EQUAL?', deepEqual(a, b) ? '✅' : '🛑')
+	console.log('🟪 DEEP EQUAL?', deepEqual(a, b) ? '✅' : '🛑')
 }
 
 function emptyAsNull(rows) {
@@ -48,21 +48,38 @@ export const queries = {
 			emptyAsNull
 		),
 
-  book_by_title: (sql, title) =>
-    sql`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE title::text ILIKE ${title} ORDER BY index_title, last_name, first_name`.then(emptyAsNull),
+	book_by_title: (sql, title) =>
+		sql`SELECT * FROM lib.books JOIN lib.authors USING(author_id) WHERE title::text ILIKE ${title} ORDER BY index_title, last_name, first_name`.then(
+			emptyAsNull
+		),
 
-  author_by_id: (sql, author_id) => sql`SELECT * FROM lib.authors WHERE author_id::text ILIKE ${author_id} ORDER BY last_name, first_name`.then(emptyAsNull),
-	
-  book_genre_checks: (sql, book_id) =>
-		sql`SELECT * FROM lib.book_genres JOIN lib.genres USING(genre_id) WHERE book_id::text ILIKE ${book_id} ORDER BY name`.then(emptyAsNull),
+	author_by_id: (sql, author_id) =>
+		sql`SELECT * FROM lib.authors WHERE author_id::text ILIKE ${author_id} ORDER BY last_name, first_name`.then(
+			emptyAsNull
+		),
 
-  all_genres: sql => sql`SELECT * FROM lib.genres ORDER BY name`.then(emptyAsNull),
+	book_genre_checks: (sql, book_id) =>
+		sql`SELECT * FROM lib.book_genres JOIN lib.genres USING(genre_id) WHERE book_id::text ILIKE ${book_id} ORDER BY name`.then(
+			emptyAsNull
+		),
 
-  all_authors: sql => sql`SELECT * FROM lib.authors ORDER BY last_name, first_name`.then(emptyAsNull),
+	all_genres: (sql) =>
+		sql`SELECT * FROM lib.genres ORDER BY name`.then(emptyAsNull),
 
-  delete_book_genre_by_book_id: (sql, book_id) => sql`DELETE FROM lib.book_genres  WHERE book_id::text ILIKE ${book_id} RETURNING *`.then(emptyAsNull),
+	all_authors: (sql) =>
+		sql`SELECT * FROM lib.authors ORDER BY last_name, first_name`.then(
+			emptyAsNull
+		),
 
-  update_book: (sql, book_id, title, isbn, author_id, summary) => sql`UPDATE lib.books SET title = ${title}, isbn = ${isbn}, author_id = ${author_id}, summary = ${summary} WHERE book_id::text ILIKE ${book_id} RETURNING *`,
+	delete_book_genre_by_book_id: (sql, book_id) =>
+		sql`DELETE FROM lib.book_genres  WHERE book_id::text ILIKE ${book_id} RETURNING *`.then(
+			emptyAsNull
+		),
+
+	update_book: (sql, book_id, title, isbn, author_id, summary) =>
+		sql`UPDATE lib.books SET title = ${title}, isbn = ${isbn}, author_id = ${author_id}, summary = ${summary} WHERE book_id::text ILIKE ${book_id} RETURNING *`,
+
+	all_genre_ids: sql => sql`SELECT array_agg(genre_id) AS all_ids FROM lib.genres`,
 
 	trigramTitleQuery: async (sql, fuzzy) => {
 		return await sql.begin(async (sql) => {

@@ -47,12 +47,6 @@
     <div class="row mb-3">
         <label for="genre-checkboxes" class="col-form-label col-sm-3">Genres</label>
         <div class="col d-flex flex-wrap justify-content-between" id="genre-checkboxes-container">
-            {{#each genres}}
-            <div class="form-check min-tiny">
-                <input type="checkbox" class="form-check-input" name="genre-{{genre_id}}" id="cb-{{genre_id}}" {{#if (find-in ../genreChecks 'genre_id' genre_id)}}checked{{/if}}>
-                <label class="text-break" for="cb-{{genre_id}}">{{name}}</label>
-            </div>
-            {{/each}}
         </div>
     </div>
 

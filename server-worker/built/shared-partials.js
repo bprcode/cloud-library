@@ -125,27 +125,6 @@ Handlebars.partials['book_form_body'] = template({"1":function(container,depth0,
 },"11":function(container,depth0,helpers,partials,data) {
     return "<details><summary><small>Categories</small></summary>";
 },"13":function(container,depth0,helpers,partials,data,blockParams,depths) {
-    var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3="function", alias4=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
-        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
-          return parent[propertyName];
-        }
-        return undefined
-    };
-
-  return "            <div class=\"form-check min-tiny\">\n                <input type=\"checkbox\" class=\"form-check-input\" name=\"genre-"
-    + alias4(((helper = (helper = lookupProperty(helpers,"genre_id") || (depth0 != null ? lookupProperty(depth0,"genre_id") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"genre_id","hash":{},"data":data,"loc":{"start":{"line":52,"column":76},"end":{"line":52,"column":88}}}) : helper)))
-    + "\" id=\"cb-"
-    + alias4(((helper = (helper = lookupProperty(helpers,"genre_id") || (depth0 != null ? lookupProperty(depth0,"genre_id") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"genre_id","hash":{},"data":data,"loc":{"start":{"line":52,"column":97},"end":{"line":52,"column":109}}}) : helper)))
-    + "\" "
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(lookupProperty(helpers,"find-in")||(depth0 && lookupProperty(depth0,"find-in"))||alias2).call(alias1,(depths[1] != null ? lookupProperty(depths[1],"genreChecks") : depths[1]),"genre_id",(depth0 != null ? lookupProperty(depth0,"genre_id") : depth0),{"name":"find-in","hash":{},"data":data,"loc":{"start":{"line":52,"column":117},"end":{"line":52,"column":161}}}),{"name":"if","hash":{},"fn":container.program(14, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":52,"column":111},"end":{"line":52,"column":177}}})) != null ? stack1 : "")
-    + ">\n                <label class=\"text-break\" for=\"cb-"
-    + alias4(((helper = (helper = lookupProperty(helpers,"genre_id") || (depth0 != null ? lookupProperty(depth0,"genre_id") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"genre_id","hash":{},"data":data,"loc":{"start":{"line":53,"column":50},"end":{"line":53,"column":62}}}) : helper)))
-    + "\">"
-    + alias4(((helper = (helper = lookupProperty(helpers,"name") || (depth0 != null ? lookupProperty(depth0,"name") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"name","hash":{},"data":data,"loc":{"start":{"line":53,"column":64},"end":{"line":53,"column":72}}}) : helper)))
-    + "</label>\n            </div>\n";
-},"14":function(container,depth0,helpers,partials,data) {
-    return "checked";
-},"16":function(container,depth0,helpers,partials,data,blockParams,depths) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -154,9 +133,9 @@ Handlebars.partials['book_form_body'] = template({"1":function(container,depth0,
     };
 
   return "    <div class=\"row mb-3\">\n        <label for=\"genre-checkboxes\" class=\"col-form-label col-sm-3\">Suggestions</label>\n        <div class=\"col d-flex flex-wrap justify-content-between\">\n"
-    + ((stack1 = lookupProperty(helpers,"each").call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"suggestions") : depth0),{"name":"each","hash":{},"fn":container.program(17, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":63,"column":12},"end":{"line":68,"column":21}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"each").call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"suggestions") : depth0),{"name":"each","hash":{},"fn":container.program(14, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":57,"column":12},"end":{"line":62,"column":21}}})) != null ? stack1 : "")
     + "        </div>\n    </div>\n";
-},"17":function(container,depth0,helpers,partials,data,blockParams,depths) {
+},"14":function(container,depth0,helpers,partials,data,blockParams,depths) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3="function", alias4=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -165,21 +144,23 @@ Handlebars.partials['book_form_body'] = template({"1":function(container,depth0,
     };
 
   return "            <div class=\"form-check min-tiny w-100\">\n                <input type=\"checkbox\" class=\"form-check-input\" name=\"suggestion-"
-    + alias4(((helper = (helper = lookupProperty(helpers,"suggestion_id") || (depth0 != null ? lookupProperty(depth0,"suggestion_id") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"suggestion_id","hash":{},"data":data,"loc":{"start":{"line":65,"column":81},"end":{"line":65,"column":98}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"suggestion_id") || (depth0 != null ? lookupProperty(depth0,"suggestion_id") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"suggestion_id","hash":{},"data":data,"loc":{"start":{"line":59,"column":81},"end":{"line":59,"column":98}}}) : helper)))
     + "\" id=\"scb-"
-    + alias4(((helper = (helper = lookupProperty(helpers,"suggestion_id") || (depth0 != null ? lookupProperty(depth0,"suggestion_id") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"suggestion_id","hash":{},"data":data,"loc":{"start":{"line":65,"column":108},"end":{"line":65,"column":125}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"suggestion_id") || (depth0 != null ? lookupProperty(depth0,"suggestion_id") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"suggestion_id","hash":{},"data":data,"loc":{"start":{"line":59,"column":108},"end":{"line":59,"column":125}}}) : helper)))
     + "\" value=\""
-    + alias4(((helper = (helper = lookupProperty(helpers,"name") || (depth0 != null ? lookupProperty(depth0,"name") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"name","hash":{},"data":data,"loc":{"start":{"line":65,"column":134},"end":{"line":65,"column":142}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"name") || (depth0 != null ? lookupProperty(depth0,"name") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"name","hash":{},"data":data,"loc":{"start":{"line":59,"column":134},"end":{"line":59,"column":142}}}) : helper)))
     + "\" "
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(lookupProperty(helpers,"find-in")||(depth0 && lookupProperty(depth0,"find-in"))||alias2).call(alias1,(depths[1] != null ? lookupProperty(depths[1],"suggestionChecks") : depths[1]),"suggestion_id",(depth0 != null ? lookupProperty(depth0,"suggestion_id") : depth0),{"name":"find-in","hash":{},"data":data,"loc":{"start":{"line":65,"column":150},"end":{"line":65,"column":209}}}),{"name":"if","hash":{},"fn":container.program(14, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":65,"column":144},"end":{"line":65,"column":225}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(lookupProperty(helpers,"find-in")||(depth0 && lookupProperty(depth0,"find-in"))||alias2).call(alias1,(depths[1] != null ? lookupProperty(depths[1],"suggestionChecks") : depths[1]),"suggestion_id",(depth0 != null ? lookupProperty(depth0,"suggestion_id") : depth0),{"name":"find-in","hash":{},"data":data,"loc":{"start":{"line":59,"column":150},"end":{"line":59,"column":209}}}),{"name":"if","hash":{},"fn":container.program(15, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":59,"column":144},"end":{"line":59,"column":225}}})) != null ? stack1 : "")
     + ">\n                <label class=\"text-break\" for=\"scb-"
-    + alias4(((helper = (helper = lookupProperty(helpers,"suggestion_id") || (depth0 != null ? lookupProperty(depth0,"suggestion_id") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"suggestion_id","hash":{},"data":data,"loc":{"start":{"line":66,"column":51},"end":{"line":66,"column":68}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"suggestion_id") || (depth0 != null ? lookupProperty(depth0,"suggestion_id") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"suggestion_id","hash":{},"data":data,"loc":{"start":{"line":60,"column":51},"end":{"line":60,"column":68}}}) : helper)))
     + "\">"
-    + alias4(((helper = (helper = lookupProperty(helpers,"name") || (depth0 != null ? lookupProperty(depth0,"name") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"name","hash":{},"data":data,"loc":{"start":{"line":66,"column":70},"end":{"line":66,"column":78}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"name") || (depth0 != null ? lookupProperty(depth0,"name") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"name","hash":{},"data":data,"loc":{"start":{"line":60,"column":70},"end":{"line":60,"column":78}}}) : helper)))
     + "</label>\n            </div>\n";
-},"19":function(container,depth0,helpers,partials,data) {
+},"15":function(container,depth0,helpers,partials,data) {
+    return "checked";
+},"17":function(container,depth0,helpers,partials,data) {
     return "</details>";
-},"21":function(container,depth0,helpers,partials,data) {
+},"19":function(container,depth0,helpers,partials,data) {
     var helper, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -188,9 +169,9 @@ Handlebars.partials['book_form_body'] = template({"1":function(container,depth0,
     };
 
   return "    <div class=\"d-flex justify-content-end\">\n    <button class=\"btn btn-primary fw-semibold\" type=\"submit\">"
-    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"submit") || (depth0 != null ? lookupProperty(depth0,"submit") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"submit","hash":{},"data":data,"loc":{"start":{"line":77,"column":62},"end":{"line":77,"column":72}}}) : helper)))
+    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"submit") || (depth0 != null ? lookupProperty(depth0,"submit") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"submit","hash":{},"data":data,"loc":{"start":{"line":71,"column":62},"end":{"line":71,"column":72}}}) : helper)))
     + "</button>\n    </div>\n";
-},"23":function(container,depth0,helpers,partials,data) {
+},"21":function(container,depth0,helpers,partials,data) {
     var helper, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -199,7 +180,7 @@ Handlebars.partials['book_form_body'] = template({"1":function(container,depth0,
     };
 
   return "    "
-    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"genre_id") || (depth0 != null ? lookupProperty(depth0,"genre_id") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"genre_id","hash":{},"data":data,"loc":{"start":{"line":89,"column":4},"end":{"line":89,"column":16}}}) : helper)))
+    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"genre_id") || (depth0 != null ? lookupProperty(depth0,"genre_id") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"genre_id","hash":{},"data":data,"loc":{"start":{"line":83,"column":4},"end":{"line":83,"column":16}}}) : helper)))
     + ",\n";
 },"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data,blockParams,depths) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3=container.escapeExpression, alias4=container.lambda, lookupProperty = container.lookupProperty || function(parent, propertyName) {
@@ -235,16 +216,14 @@ Handlebars.partials['book_form_body'] = template({"1":function(container,depth0,
     + alias3((lookupProperty(helpers,"error-check")||(depth0 && lookupProperty(depth0,"error-check"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"trouble") : depth0),"summary",{"name":"error-check","hash":{},"data":data,"loc":{"start":{"line":41,"column":62},"end":{"line":41,"column":95}}}))
     + "</div>\n        </div>\n    </div>\n\n\n    "
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"condense") : depth0),{"name":"if","hash":{},"fn":container.program(11, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":46,"column":4},"end":{"line":46,"column":80}}})) != null ? stack1 : "")
-    + "\n    <div class=\"row mb-3\">\n        <label for=\"genre-checkboxes\" class=\"col-form-label col-sm-3\">Genres</label>\n        <div class=\"col d-flex flex-wrap justify-content-between\" id=\"genre-checkboxes-container\">\n"
-    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"genres") : depth0),{"name":"each","hash":{},"fn":container.program(13, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":50,"column":12},"end":{"line":55,"column":21}}})) != null ? stack1 : "")
-    + "        </div>\n    </div>\n\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"suggestions") : depth0),{"name":"if","hash":{},"fn":container.program(16, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":59,"column":4},"end":{"line":71,"column":11}}})) != null ? stack1 : "")
+    + "\n    <div class=\"row mb-3\">\n        <label for=\"genre-checkboxes\" class=\"col-form-label col-sm-3\">Genres</label>\n        <div class=\"col d-flex flex-wrap justify-content-between\" id=\"genre-checkboxes-container\">\n        </div>\n    </div>\n\n"
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"suggestions") : depth0),{"name":"if","hash":{},"fn":container.program(13, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":53,"column":4},"end":{"line":65,"column":11}}})) != null ? stack1 : "")
     + "\n    "
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"condense") : depth0),{"name":"if","hash":{},"fn":container.program(19, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":73,"column":4},"end":{"line":73,"column":37}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"condense") : depth0),{"name":"if","hash":{},"fn":container.program(17, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":67,"column":4},"end":{"line":67,"column":37}}})) != null ? stack1 : "")
     + "\n\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"submit") : depth0),{"name":"if","hash":{},"fn":container.program(21, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":75,"column":4},"end":{"line":79,"column":11}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"submit") : depth0),{"name":"if","hash":{},"fn":container.program(19, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":69,"column":4},"end":{"line":73,"column":11}}})) != null ? stack1 : "")
     + "</form>\n\n<script type=\"module\">\n\nimport {attachSummarizer} from '/attach-bookbot.js'\nimport {populateAuthorIds, populateGenreCheckboxes} from '/attach-tables.js'\n\nconst genreCheckList = [\n"
-    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"genreChecks") : depth0),{"name":"each","hash":{},"fn":container.program(23, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":88,"column":4},"end":{"line":90,"column":13}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"genreChecks") : depth0),{"name":"each","hash":{},"fn":container.program(21, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":82,"column":4},"end":{"line":84,"column":13}}})) != null ? stack1 : "")
     + "]\n\nattachSummarizer()\npopulateAuthorIds("
     + alias3(alias4(((stack1 = (depth0 != null ? lookupProperty(depth0,"populate") : depth0)) != null ? lookupProperty(stack1,"author_id") : stack1), depth0))
     + ")\npopulateGenreCheckboxes(new Set(genreCheckList))\n\n</script>\n";
